@@ -12,3 +12,6 @@ binding = "DB"
 database_name = "pole-chudes-db"
 database_id = "fde46223-a4fb-419e-954f-cdd479656925"
 migrations_dir = "migrations"
+
+[observability]
+enabled = true
