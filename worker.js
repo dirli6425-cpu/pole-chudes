@@ -18,9 +18,14 @@ if(url.pathname==='/api/auth'){
   if(Number(request.headers.get('content-length')||0)>4096)return json({error:'Запрос слишком большой'},413);
   let data;try{data=await request.json()}catch{return json({error:'Некорректный запрос'},400)}
   if(!equal(String(data.password||''),env.ADMIN_KEY))return json({error:'Неверный пароль'},401);
-  const payload=b64(enc.encode(JSON.stringify({exp:Date.now()+MAX_AGE*1000})));
-  const token=payload+'.'+await mac(env.ADMIN_KEY,payload);
-  return new Response(JSON.stringify({ok:true}),{headers:{'content-type':'application/json','set-cookie':COOKIE+'='+token+'; Max-Age='+MAX_AGE+cookieOpts,'cache-control':'no-store'}});
+  try {
+   const payload=b64(enc.encode(JSON.stringify({exp:Date.now()+MAX_AGE*1000})));
+   const token=payload+'.'+await mac(env.ADMIN_KEY,payload);
+   return new Response(JSON.stringify({ok:true}),{status:200,headers:{'content-type':'application/json; charset=utf-8','set-cookie':COOKIE+'='+token+'; Max-Age='+MAX_AGE+cookieOpts,'cache-control':'no-store'}});
+  } catch(e) {
+   console.error('Admin login token creation failed:', e?.name || 'UnknownError');
+   return json({error:'Ошибка создания сеанса администратора. Проверьте журнал Worker.'},500);
+  }
  }
  return json({error:'Метод не поддерживается'},405);
 }
