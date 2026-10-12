@@ -21,10 +21,12 @@ if(url.pathname==='/api/auth'){
   try {
    const payload=b64(enc.encode(JSON.stringify({exp:Date.now()+MAX_AGE*1000})));
    const token=payload+'.'+await mac(env.ADMIN_KEY,payload);
-   return new Response(JSON.stringify({ok:true}),{status:200,headers:{'content-type':'application/json; charset=utf-8','set-cookie':COOKIE+'='+token+'; Max-Age='+MAX_AGE+cookieOpts,'cache-control':'no-store'}});
-  } catch(e) {
-   console.error('Admin login token creation failed:', e?.name || 'UnknownError');
-   return json({error:'Ошибка создания сеанса администратора. Проверьте журнал Worker.'},500);
+   const response=json({ok:true});
+   response.headers.set('Set-Cookie',COOKIE+'='+token+'; Max-Age='+MAX_AGE+cookieOpts);
+   return response;
+  } catch (error) {
+   console.error('Admin session creation failed:',error);
+   return json({error:'Ошибка создания сеанса администратора',code:'SESSION_CREATE_FAILED',detail:String(error?.name||'UnknownError')},500);
   }
  }
  return json({error:'Метод не поддерживается'},405);
