@@ -1,0 +1,14 @@
+name = "pole-chudes"
+main = "worker.js"
+compatibility_date = "2026-10-06"
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+run_worker_first = ["/api/*"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "pole-chudes-db"
+database_id = "fde46223-a4fb-419e-954f-cdd479656925"
+migrations_dir = "migrations"
