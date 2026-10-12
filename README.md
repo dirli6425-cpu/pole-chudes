@@ -1,22 +1,23 @@
-# Поле чудес — Cloudflare D1
+ПОЛЕ ЧУДЕС 5.2 — Cloudflare Worker + D1
 
-Теперь вопросы, ответы, названия групп и количество туров сохраняются **в облачной базе Cloudflare D1**. Игровой прогресс сохраняется только локально на ноутбуке и может быть сброшен независимо.
+База: pole-chudes-db
+ID: fde46223-a4fb-419e-954f-cdd479656925
 
-## Первоначальная настройка (один раз)
+1. Загрузить содержимое ЭТОГО архива в корень GitHub репозитория dirli6425-cpu/pole-chudes.
+   ВАЖНО: файлы index.html, laboratory.jpg, building.jpg находятся внутри public/.
+   Старые одноимённые файлы в корне можно удалить, но не обязательно.
+   Файлы worker.js, wrangler.toml и migrations/ должны быть в корне.
+2. В Cloudflare -> pole-chudes -> Settings -> Builds -> Deploy command поставить ОДНУ строку:
+   npx wrangler d1 migrations apply pole-chudes-db --remote --yes && npx wrangler deploy --config wrangler.toml
+   Build command: пусто. Root directory: / (корень репозитория).
+   Дата 2026-10-06 уже есть в wrangler.toml; не требуется менять.
+3. Сохранить настройку сборки и запустить Redeploy/Retry deployment.
+   Миграция создаёт таблицу и добавляет 5 начальных вопросов ТОЛЬКО если записей ещё нет.
+4. После успешного деплоя в Settings -> Variables and Secrets добавить секрет ADMIN_KEY
+   (любой свой длинный пароль, НЕ присылать его в чат). После изменения секрета может
+   потребоваться новая публикация. Это пароль для записи вопросов.
+5. Проверить https://pole-chudes.dirli6425.workers.dev/api/config — должен возвращаться JSON с groups и rounds.
+   Затем обновить страницу сайта Ctrl+F5. В настройках сохранить вопросы с ADMIN_KEY.
 
-1. Загрузите файлы архива в корень репозитория GitHub `dirli6425-cpu/pole-chudes`, включая `worker.js`, `wrangler.toml` и папку `migrations`.
-2. В Cloudflare откройте **Storage & databases → D1 → Create database**, имя: `pole-chudes-db`.
-3. Скопируйте **Database ID** и замените `REPLACE_WITH_YOUR_D1_DATABASE_ID` в `wrangler.toml` на настоящий ID.
-4. В терминале проекта выполните `npx wrangler d1 migrations apply pole-chudes-db --remote` (после авторизации Wrangler в Cloudflare). Это создаст таблицу для вопросов.
-5. В настройках Worker добавьте **Secret** с именем `ADMIN_KEY` и собственным длинным паролем (не размещайте его в GitHub!). Или через Wrangler: `npx wrangler secret put ADMIN_KEY`.
-6. Команда развертывания: `npx wrangler deploy`. В Cloudflare Git build settings замените прежнюю команду `npx wrangler deploy --name pole-chudes --assets . --compatibility-date 2026-10-06` на **`npx wrangler deploy`**, поскольку теперь используется Worker с API и `wrangler.toml`.
-
-Первый запуск показывает пять демонстрационных вопросов и группы 102, 103, 104. При первом сохранении через «Настройки» они будут записаны в D1.
-
-## Важно
-
-- **Настройки → Сохранить** записывает вопросы и группы в D1 и запрашивает `ADMIN_KEY`. Пароль хранится лишь в `sessionStorage` текущей вкладки, не в базе.
-- **Полный сброс игры** не удаляет вопросы из D1.
-- Кнопки экспорта и импорта резервной копии остаются; импорт записывает настройки в D1.
-- Участники могут читать вопросы без пароля; изменение вопросов защищено паролем. При демонстрации вопросов скрытие ответов на уровне API не гарантируется — это обычная игра, не защищённая экзаменационная система.
-- При отсутствии D1 появится красное предупреждение и демонстрационные вопросы. Они **не** являются сохранёнными вопросами.
+Полный сброс игры удаляет только прогресс в браузере, не вопросы в D1.
+Привязка D1 через wrangler.toml; API в worker.js; сайт в public/.
