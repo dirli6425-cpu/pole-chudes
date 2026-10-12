@@ -1,4 +1,9 @@
 <!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#080d16"><title>Поле чудес — Интеллектуальная игра</title><style>
+/* Запрет выделения на игровых экранах; настройки остаются редактируемыми */
+body { -webkit-user-select:none; user-select:none; }
+#editor, #editor * { -webkit-user-select:text; user-select:text; }
+input, textarea, [contenteditable="true"] { -webkit-user-select:text; user-select:text; }
+
 :root{--gold:#ffd47c;--gold2:#bc7929;--ink:#070d16;--line:#b88743;--white:#fff8e9}
 *{box-sizing:border-box}html{height:100%}body{margin:0;min-height:100%;color:var(--white);font-family:Inter,'Segoe UI',Arial,sans-serif;background:#080d16}
 #dbError:empty{display:none}button,input,textarea{font:inherit}button{cursor:pointer;border:1px solid #ffdf9c;background:linear-gradient(180deg,#ffe5a3 0%,#e6a945 52%,#b87323 100%);color:#17140e;border-radius:12px;padding:12px 22px;font-weight:850;box-shadow:0 4px 0 #69411c,0 10px 24px #0006;transition:filter .15s,transform .15s}
