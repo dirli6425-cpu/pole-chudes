@@ -41,15 +41,55 @@ main{position:relative;z-index:2;width:min(100%,1560px);margin:auto;padding:clam
 @media(max-width:950px){.stage{grid-template-columns:minmax(0,1fr) 205px}.ladder-box{padding:15px 9px}.ladder li{padding:6px;font-size:12px}.stage-spot{min-height:100px}}
 @media(max-width:730px){header{padding:12px 10px}header strong{font-size:13px;letter-spacing:1px}.small{font-size:11px;padding:8px}.stage{grid-template-columns:1fr;min-height:0}.play-box{padding:14px 9px}.stage-spot{min-height:110px}.stage-spot .studio-emblem{width:95px}.question{font-size:clamp(17px,4.6vw,24px);min-height:100px;padding:17px 21px}.answers{grid-template-columns:1fr;gap:9px}.answer{min-height:58px;font-size:15px;padding:11px 21px}.ladder-box{order:2}.ladder{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px}.ladder li{font-size:11px;padding:7px 5px;min-height:34px}.ladder-num{font-size:10px}.edititem .options{grid-template-columns:1fr}main{padding:13px 8px}.intro{min-height:calc(100svh - 145px)}.intro h1{font-size:clamp(32px,9vw,57px)}.tools .hint{flex:1 1 115px}.tools .gold{flex:1 1 170px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* v6.0: телефонная компоновка */
+@media(max-width:760px){
+ html,body{width:100%;max-width:100%;overflow-x:hidden}
+ header{display:flex;flex-direction:column;align-items:stretch;gap:10px;padding:12px max(12px,env(safe-area-inset-right)) 12px max(12px,env(safe-area-inset-left))}
+ header strong{text-align:center;font-size:clamp(13px,4vw,19px);letter-spacing:1px}
+ nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;width:100%}
+ nav .small{display:flex;justify-content:center;align-items:center;min-width:0;min-height:44px;padding:7px 3px;font-size:clamp(9px,2.6vw,12px);text-align:center;line-height:1.15;white-space:normal}
+ main{padding:12px 9px calc(25px + env(safe-area-inset-bottom));max-width:100%}
+ .intro{min-height:calc(100svh - 180px);padding:20px 4px}
+ .studio-emblem{width:clamp(140px,45vw,240px)}
+ .intro h1{font-size:clamp(31px,8.5vw,56px);overflow-wrap:anywhere}
+ .intro .gold{width:min(100%,360px);padding:16px 12px}
+ .stage{display:flex;flex-direction:column;gap:12px;min-height:0}
+ .play-box{padding:12px 10px 18px;min-width:0}
+ .stage-spot{min-height:80px;gap:4px}
+ .stage-spot .studio-emblem{width:82px}
+ .stage-spot .emblem-core{font-size:35px}
+ .question{font-size:clamp(17px,4.6vw,23px);min-height:95px;padding:16px 23px;margin:10px 0 15px;overflow-wrap:anywhere}
+ .answers{display:grid;grid-template-columns:1fr;gap:9px}
+ .answer{min-height:62px;padding:13px 24px;gap:9px;font-size:clamp(14px,3.8vw,17px);line-height:1.3}
+ .answer-letter{font-size:19px}
+ .notice{min-height:44px;font-size:14px;line-height:1.45}
+ .tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .tools .hint,.tools .gold{min-width:0;width:100%;min-height:48px;padding:10px 6px;font-size:clamp(11px,3vw,14px);white-space:normal}
+ #next{grid-column:1/-1;min-height:52px}
+ .ladder-box{order:2;padding:13px 10px}
+ .ladder{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+ .ladder li{min-width:0;min-height:38px;padding:7px 5px;font-size:clamp(10px,2.7vw,13px)}
+ .ladder-num{font-size:10px}
+ .editor{width:100%;padding:14px 11px;overflow:visible}
+ .editor h2{font-size:22px}
+ .edititem{padding:12px 10px}
+ .edititem .options{grid-template-columns:1fr;gap:4px}
+ .editor input,.editor select{width:100%;max-width:100%;min-height:46px;font-size:16px}
+ .editor .tools{grid-template-columns:1fr}
+}
+@media(max-width:360px){nav{grid-template-columns:repeat(2,minmax(0,1fr))}.ladder{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px) and (orientation:landscape){.intro{min-height:450px}.stage-spot{min-height:55px}.stage-spot .studio-emblem{width:65px}}
 </style></head><body>
-<header><strong>✦ МИЛЛИОН ДЛЯ ГРУППЫ</strong><nav><a class="small" href="/">← Игры</a><button class="small" id="editButton">⚙ Вопросы</button><button class="small" id="soundButton">♫ Звук вкл.</button><button class="small" id="fullButton">⛶ Экран</button></nav></header><div id="error"></div>
+<header><strong>✦ МИЛЛИОН ДЛЯ ГРУППЫ</strong><nav><a class="small" href="/">← Игры</a><button class="small" id="editButton">⚙ Вопросы</button><button class="small" id="soundButton">🔊 Звук вкл.</button><button class="small" id="fullButton">⛶ Экран</button></nav></header><div id="error"></div>
 <main>
 <section id="intro" class="intro"><div class="studio-emblem"><div class="emblem-core">М</div></div><div class="eyebrow">Интеллектуальное шоу</div><h1 id="introTitle">Миллион для группы</h1><p>15 вопросов · 4 варианта ответа · 3 подсказки. Кто дойдёт до миллиона?</p><button class="gold" id="startButton">▶ НАЧАТЬ ИГРУ</button></section>
 <section id="play" class="stage hidden"><div class="box play-box"><div class="stage-spot"><div class="studio-emblem"><div class="emblem-core">М</div></div><div class="eyebrow" id="roundText">ВОПРОС 1</div></div><div class="question" id="question"></div><div class="answers" id="answers"></div><div class="notice" id="notice" aria-live="polite"></div><div class="tools"><button class="hint" id="fifty">◑ 50 / 50</button><button class="hint" id="audience">♟ Помощь зала</button><button class="hint" id="swap">⇄ Замена вопроса</button><button class="gold hidden" id="next">Следующий вопрос →</button><button class="hint" id="restart">↻ Заново</button></div></div><aside class="box ladder-box"><div class="eyebrow ladder-title">✦ ПРИЗОВАЯ ЛЕСТНИЦА ✦</div><ol class="ladder" id="ladder"></ol></aside></section>
 <section id="editor" class="box editor hidden"><h2>⚙ Редактор игры</h2><label>Название игры <input id="gameTitle" maxlength="100"></label><div id="questionList"></div><div class="tools"><button class="hint" id="add">+ Добавить вопрос</button><button class="gold" id="save">💾 Сохранить в D1</button><button class="hint" id="cancel">← Вернуться</button></div><p style="color:#bdc9e1;font-size:13px">Авторизация общая с «Полем чудес» и запоминается на 90 дней.</p></section>
 </main><script>
-'use strict';const $=id=>document.getElementById(id);let config={title:'Миллион для группы',questions:[]},index=0,finished=false,used={fifty:false,audience:false,swap:false},removed=[],locked=false;const money=['100','200','300','500','1 000','2 000','4 000','8 000','16 000','32 000','64 000','125 000','250 000','500 000','1 000 000'];const letters=['А','Б','В','Г'];function show(id){for(const n of ['intro','play','editor'])$(n).classList.toggle('hidden',n!==id)}function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}async function load(){try{const r=await fetch('/api/million',{cache:'no-store'});const d=await r.json();if(!r.ok)throw Error(d.error||'Ошибка сервера');config=d;$('introTitle').textContent=config.title;render()}catch(e){$('error').textContent='⚠ '+e.message+' — проверьте миграцию D1'}}function render(){const q=config.questions[index];if(!q)return;$('roundText').textContent='ВОПРОС '+(index+1)+' / '+config.questions.length+' · '+money[Math.min(index,14)]+' ОЧКОВ';$('question').textContent=q.q;$('answers').innerHTML='';q.options.forEach((answer,i)=>{const b=document.createElement('button');b.className='answer';b.innerHTML='<span class="answer-letter">'+letters[i]+':</span><span class="answer-copy"></span>';b.querySelector('.answer-copy').textContent=answer;b.disabled=locked||removed.includes(i);b.onclick=()=>choose(i);$('answers').append(b)});$('ladder').innerHTML='';for(let i=Math.min(15,config.questions.length)-1;i>=0;i--){const li=document.createElement('li');if(i===index)li.className='active';li.innerHTML='<span class="ladder-num">'+String(i+1).padStart(2,'0')+'</span><span>'+money[Math.min(i,14)]+'</span>';if([4,9,14].includes(i))li.classList.add('milestone');$('ladder').append(li)}$('fifty').disabled=used.fifty||locked;$('audience').disabled=used.audience||locked;$('swap').disabled=used.swap||locked||index>=config.questions.length-1;$('next').classList.toggle('hidden',!finished)}function choose(i){
- if(locked)return;locked=true;finished=false;
+'use strict';const $=id=>document.getElementById(id);let config={title:'Миллион для группы',questions:[]},index=0,finished=false,used={fifty:false,audience:false,swap:false},removed=[],locked=false;const money=['100','200','300','500','1 000','2 000','4 000','8 000','16 000','32 000','64 000','125 000','250 000','500 000','1 000 000'];const letters=['А','Б','В','Г'];function show(id){for(const n of ['intro','play','editor'])$(n).classList.toggle('hidden',n!==id)}function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}async function load(){try{const r=await fetch('/api/million',{cache:'no-store'});const d=await r.json();if(!r.ok)throw Error(d.error||'Ошибка сервера');config=d;$('introTitle').textContent=config.title;render()}catch(e){$('error').textContent='⚠ '+e.message+' — проверьте миграцию D1'}}function render(){const q=config.questions[index];if(!q)return;$('roundText').textContent='ВОПРОС '+(index+1)+' / '+config.questions.length+' · '+money[Math.min(index,14)]+' ОЧКОВ';$('question').textContent=q.q;$('answers').innerHTML='';q.options.forEach((answer,i)=>{const b=document.createElement('button');b.className='answer';b.innerHTML='<span class="answer-letter">'+letters[i]+':</span><span class="answer-copy"></span>';b.querySelector('.answer-copy').textContent=answer;b.disabled=locked||removed.includes(i);b.onclick=()=>choose(i);$('answers').append(b)});$('ladder').innerHTML='';for(let i=Math.min(15,config.questions.length)-1;i>=0;i--){const li=document.createElement('li');if(i===index)li.className='active';li.innerHTML='<span class="ladder-num">'+String(i+1).padStart(2,'0')+'</span><span>'+money[Math.min(i,14)]+'</span>';if([4,9,14].includes(i))li.classList.add('milestone');$('ladder').append(li)}$('fifty').disabled=used.fifty||locked;$('audience').disabled=used.audience||locked;$('swap').disabled=used.swap||locked||index>=config.questions.length-1;$('next').classList.toggle('hidden',!finished)}function updateHints(){ $('fifty').disabled=used.fifty||locked; $('audience').disabled=used.audience||locked; $('swap').disabled=used.swap||locked||index>=config.questions.length-1; }
+function choose(i){
+ if(locked)return;locked=true;finished=false;updateHints();
  const q=config.questions[index],buttons=[...$('answers').children];
  buttons.forEach((b,j)=>{b.disabled=true;if(j===i)b.classList.add('selected')});
  $('notice').textContent='Ответ '+letters[i]+' принят. И это...';
@@ -64,15 +104,39 @@ main{position:relative;z-index:2;width:min(100%,1560px);margin:auto;padding:clam
   $('next').classList.remove('hidden');$('next').dataset.lost=right?'0':'1';
  },1650);
 }
-$('startButton').onclick=()=>{sound('start');$('next').dataset.lost='0';if(!config.questions.length){alert('Сначала добавьте вопросы в настройках');return}index=0;used={fifty:false,audience:false,swap:false};removed=[];locked=false;finished=false;$('notice').textContent='';render();show('play')};$('next').onclick=()=>{if($('next').dataset.lost==='1'){show('intro');$('introTitle').textContent='Игра окончена';$('next').dataset.lost='0';return}if(index+1>=config.questions.length){show('intro');$('introTitle').textContent='Игра завершена!';return}index++;locked=false;finished=false;removed=[];$('notice').textContent='';render()};$('restart').onclick=()=>{if(confirm('Начать игру заново?'))$('startButton').click()};$('fifty').onclick=()=>{sound('click');used.fifty=true;const q=config.questions[index];removed=[0,1,2,3].filter(i=>i!==q.correct).sort(()=>Math.random()-.5).slice(0,2);render()};$('audience').onclick=()=>{sound('click');used.audience=true;const q=config.questions[index];const guess=Math.floor(65+Math.random()*25);$('notice').textContent='📊 Мнение зала (демо): '+letters[q.correct]+' — '+guess+'% голосов';render()};$('swap').onclick=()=>{sound('click');used.swap=true;index++;removed=[];locked=false;finished=false;$('notice').textContent='Вопрос заменён';render()};$('fullButton').onclick=()=>{if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.()};function editRow(q,i){const el=document.createElement('div');el.className='edititem';el.innerHTML='<strong>Вопрос '+(i+1)+'</strong><label>Текст вопроса<input class="q" maxlength="500" value="'+escapeHtml(q.q)+'"></label><div class="options">'+q.options.map((a,j)=>'<label>Вариант '+letters[j]+'<input class="opt" maxlength="200" value="'+escapeHtml(a)+'"></label>').join('')+'</div><label>Правильный вариант <select class="correct">'+letters.map((l,j)=>'<option value="'+j+'" '+(j===q.correct?'selected':'')+'>'+l+'</option>').join('')+'</select></label><button class="hint delete">Удалить вопрос</button>';el.querySelector('.delete').onclick=()=>{el.remove();renumber()};return el}function renumber(){[...$('questionList').children].forEach((el,i)=>el.querySelector('strong').textContent='Вопрос '+(i+1))}function openEditor(){$('gameTitle').value=config.title;$('questionList').innerHTML='';config.questions.forEach((q,i)=>$('questionList').append(editRow(q,i)));show('editor')}$('editButton').onclick=openEditor;$('cancel').onclick=()=>show('intro');$('add').onclick=()=>{if($('questionList').children.length>=50)return alert('Максимум 50 вопросов');$('questionList').append(editRow({q:'',options:['','','',''],correct:0},$('questionList').children.length))};async function auth(){const r=await fetch('/api/auth',{cache:'no-store'});if(r.ok&&(await r.json()).authenticated)return true;const password=prompt('Введите пароль администратора (один раз на 90 дней):');if(!password)return false;const p=await fetch('/api/auth',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password})});const d=await p.json();if(!p.ok)throw Error(d.error||'Ошибка входа');return true}$('save').onclick=async()=>{const qs=[...$('questionList').children].map(el=>({q:el.querySelector('.q').value.trim(),options:[...el.querySelectorAll('.opt')].map(x=>x.value.trim()),correct:Number(el.querySelector('.correct').value)}));const data={title:$('gameTitle').value.trim(),questions:qs};if(!data.title||!qs.length||qs.some(q=>!q.q||q.options.some(a=>!a)))return alert('Заполните название, вопросы и все 4 ответа');try{if(!await auth())return;const r=await fetch('/api/million',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(data)});const d=await r.json();if(!r.ok)throw Error(d.error||'Ошибка сохранения');config=data;$('introTitle').textContent=data.title;show('intro');alert('✓ Вопросы сохранены в Cloudflare D1')}catch(e){alert('Ошибка: '+e.message)}};load();
+$('startButton').onclick=()=>{sound('start');$('next').dataset.lost='0';if(!config.questions.length){alert('Сначала добавьте вопросы в настройках');return}index=0;used={fifty:false,audience:false,swap:false};removed=[];locked=false;finished=false;$('notice').textContent='';render();show('play')};$('next').onclick=()=>{if($('next').dataset.lost==='1'){show('intro');$('introTitle').textContent='Игра окончена';$('next').dataset.lost='0';return}if(index+1>=config.questions.length){show('intro');$('introTitle').textContent='Игра завершена!';return}index++;locked=false;finished=false;removed=[];$('notice').textContent='';render()};$('restart').onclick=()=>{if(confirm('Начать игру заново?'))$('startButton').click()};$('fifty').onclick=()=>{if(locked||used.fifty)return;sound('click');used.fifty=true;const q=config.questions[index];removed=[0,1,2,3].filter(i=>i!==q.correct).sort(()=>Math.random()-.5).slice(0,2);render()};$('audience').onclick=()=>{if(locked||used.audience)return;sound('click');used.audience=true;const q=config.questions[index];const guess=Math.floor(65+Math.random()*25);$('notice').textContent='📊 Мнение зала (демо): '+letters[q.correct]+' — '+guess+'% голосов';render()};$('swap').onclick=()=>{if(locked||used.swap||index>=config.questions.length-1)return;sound('click');used.swap=true;index++;removed=[];locked=false;finished=false;$('notice').textContent='Вопрос заменён';render()};$('fullButton').onclick=()=>{if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.()};function editRow(q,i){const el=document.createElement('div');el.className='edititem';el.innerHTML='<strong>Вопрос '+(i+1)+'</strong><label>Текст вопроса<input class="q" maxlength="500" value="'+escapeHtml(q.q)+'"></label><div class="options">'+q.options.map((a,j)=>'<label>Вариант '+letters[j]+'<input class="opt" maxlength="200" value="'+escapeHtml(a)+'"></label>').join('')+'</div><label>Правильный вариант <select class="correct">'+letters.map((l,j)=>'<option value="'+j+'" '+(j===q.correct?'selected':'')+'>'+l+'</option>').join('')+'</select></label><button class="hint delete">Удалить вопрос</button>';el.querySelector('.delete').onclick=()=>{el.remove();renumber()};return el}function renumber(){[...$('questionList').children].forEach((el,i)=>el.querySelector('strong').textContent='Вопрос '+(i+1))}function openEditor(){$('gameTitle').value=config.title;$('questionList').innerHTML='';config.questions.forEach((q,i)=>$('questionList').append(editRow(q,i)));show('editor')}$('editButton').onclick=openEditor;$('cancel').onclick=()=>show('intro');$('add').onclick=()=>{if($('questionList').children.length>=50)return alert('Максимум 50 вопросов');$('questionList').append(editRow({q:'',options:['','','',''],correct:0},$('questionList').children.length))};async function auth(){const r=await fetch('/api/auth',{cache:'no-store'});if(r.ok&&(await r.json()).authenticated)return true;const password=prompt('Введите пароль администратора (один раз на 90 дней):');if(!password)return false;const p=await fetch('/api/auth',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password})});const d=await p.json();if(!p.ok)throw Error(d.error||'Ошибка входа');return true}$('save').onclick=async()=>{const qs=[...$('questionList').children].map(el=>({q:el.querySelector('.q').value.trim(),options:[...el.querySelectorAll('.opt')].map(x=>x.value.trim()),correct:Number(el.querySelector('.correct').value)}));const data={title:$('gameTitle').value.trim(),questions:qs};if(!data.title||!qs.length||qs.some(q=>!q.q||q.options.some(a=>!a)))return alert('Заполните название, вопросы и все 4 ответа');try{if(!await auth())return;const r=await fetch('/api/million',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(data)});const d=await r.json();if(!r.ok)throw Error(d.error||'Ошибка сохранения');config=data;$('introTitle').textContent=data.title;show('intro');alert('✓ Вопросы сохранены в Cloudflare D1')}catch(e){alert('Ошибка: '+e.message)}};load();
 
-let audioCtx;let muted=false;
-function sound(type){if(muted)return;try{
- audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
- if(audioCtx.state==='suspended')audioCtx.resume();
- const t=audioCtx.currentTime;
- const notes={click:[[440,0,.09]],start:[[220,0,.12],[330,.14,.12],[440,.3,.22]],suspense:[[196,0,.22],[220,.29,.22],[247,.59,.35]],correct:[[392,0,.14],[494,.16,.14],[587,.32,.18],[784,.53,.35]],wrong:[[260,0,.18],[220,.22,.24],[164,.49,.45]]}[type]||[];
- notes.forEach(([freq,offset,duration])=>{const osc=audioCtx.createOscillator(),gain=audioCtx.createGain();osc.type=type==='wrong'?'sawtooth':'sine';osc.frequency.setValueAtTime(freq,t+offset);gain.gain.setValueAtTime(.0001,t+offset);gain.gain.exponentialRampToValueAtTime(type==='wrong'?.055:.095,t+offset+.025);gain.gain.exponentialRampToValueAtTime(.0001,t+offset+duration);osc.connect(gain).connect(audioCtx.destination);osc.start(t+offset);osc.stop(t+offset+duration+.03)});
-}catch(e){}}
-$('soundButton').onclick=()=>{muted=!muted;$('soundButton').textContent=muted?'🔇 Звук выкл.':'♫ Звук вкл.';if(!muted)sound('click')};
+let audioCtx=null,muted=false;
+function getAudio(){
+ const Ctx=window.AudioContext||window.webkitAudioContext;
+ if(!Ctx)throw new Error('Браузер не поддерживает звук');
+ if(!audioCtx)audioCtx=new Ctx();
+ if(audioCtx.state==='suspended')audioCtx.resume().catch(()=>{});
+ return audioCtx;
+}
+function sound(type,force=false){
+ if(muted&&!force)return;
+ try{
+  const ctx=getAudio(),t=ctx.currentTime+0.015;
+  const notes={click:[[660,0,.16]],start:[[262,0,.15],[330,.17,.16],[440,.36,.24]],suspense:[[196,0,.25],[220,.32,.25],[247,.68,.34]],correct:[[392,0,.16],[494,.18,.16],[587,.38,.18],[784,.6,.37]],wrong:[[260,0,.2],[220,.25,.27],[164,.55,.46]]}[type]||[];
+  notes.forEach(([freq,offset,duration])=>{
+   const osc=ctx.createOscillator(),gain=ctx.createGain();
+   osc.type=type==='wrong'?'sawtooth':'triangle';
+   osc.frequency.setValueAtTime(freq,t+offset);
+   gain.gain.setValueAtTime(.0001,t+offset);
+   gain.gain.exponentialRampToValueAtTime(type==='wrong'?.13:.18,t+offset+.025);
+   gain.gain.exponentialRampToValueAtTime(.0001,t+offset+duration);
+   osc.connect(gain);gain.connect(ctx.destination);
+   osc.start(t+offset);osc.stop(t+offset+duration+.03);
+  });
+ }catch(e){$('error').textContent='⚠ Звук недоступен: '+e.message}
+}
+$('soundButton').onclick=()=>{
+ muted=!muted;
+ $('soundButton').textContent=muted?'🔇 Звук выкл.':'🔊 Звук вкл.';
+ $('soundButton').setAttribute('aria-pressed',String(!muted));
+ if(!muted)sound('start',true);
+};
+// Запуск звука происходит при непосредственном нажатии пользователя.
+document.addEventListener('pointerdown',()=>{if(!muted){try{getAudio()}catch(e){}}},{once:true});
 </script></body></html>
