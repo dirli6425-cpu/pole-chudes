@@ -5,7 +5,7 @@ const MAX_AGE=90*24*60*60;
 const enc=new TextEncoder();
 const b64=u=>btoa(String.fromCharCode(...u)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 const from64=s=>Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')+'='.repeat((4-s.length%4)%4)),c=>c.charCodeAt(0));
-async function mac(secret,payload){const k=await crypto.subtle.importKey('raw',enc.encode(secret),'HMAC',false,['sign']);return b64(new Uint8Array(await crypto.subtle.sign('HMAC',k,enc.encode(payload))))}
+async function mac(secret,payload){const k=await crypto.subtle.importKey('raw',enc.encode(secret),{name:'HMAC',hash:'SHA-256'},false,['sign']);return b64(new Uint8Array(await crypto.subtle.sign('HMAC',k,enc.encode(payload))))}
 function equal(a,b){let d=a.length^b.length;for(let i=0;i<Math.max(a.length,b.length);i++)d|=(a.charCodeAt(i)||0)^(b.charCodeAt(i)||0);return d===0}
 async function authorized(request,env){if(!env.ADMIN_KEY)return false;try{const cookie=(request.headers.get('cookie')||'').split(';').map(x=>x.trim()).find(x=>x.startsWith(COOKIE+'='));if(!cookie)return false;const token=cookie.slice(COOKIE.length+1);const [payload,sig]=token.split('.');if(!payload||!sig||!equal(sig,await mac(env.ADMIN_KEY,payload)))return false;const data=JSON.parse(new TextDecoder().decode(from64(payload)));return data.exp>Date.now()&&data.exp<=Date.now()+MAX_AGE*1000}catch{return false}}
 const cookieOpts='; Path=/; HttpOnly; Secure; SameSite=Strict';

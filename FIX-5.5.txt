@@ -1,0 +1,1 @@
+Fixed HMAC key import: SHA-256 is now explicitly specified. No D1 changes.
