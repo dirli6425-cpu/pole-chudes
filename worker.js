@@ -31,6 +31,29 @@ if(url.pathname==='/api/auth'){
  }
  return json({error:'Метод не поддерживается'},405);
 }
+if(url.pathname==='/pole-chudes')return Response.redirect(url.origin+'/pole-chudes/',302);
+if(url.pathname==='/million')return Response.redirect(url.origin+'/million/',302);
+if(url.pathname==='/api/million'){
+ if(!env.DB)return json({error:'D1 не подключена'},503);
+ try{
+  if(request.method==='GET'){
+   const row=await env.DB.prepare('SELECT payload FROM million_config WHERE id=1').first();
+   return json(row?JSON.parse(row.payload):{title:'Миллион для группы',questions:[
+    {q:'Какой газ необходим человеку для дыхания?',options:['Азот','Кислород','Гелий','Водород'],correct:1},
+    {q:'Сколько градусов в прямом угле?',options:['45','60','90','180'],correct:2},
+    {q:'Какая планета ближе всего к Солнцу?',options:['Венера','Земля','Меркурий','Марс'],correct:2}
+   ]});
+  }
+  if(request.method==='PUT'){
+   if(!await authorized(request,env))return json({error:'Требуется вход администратора'},401);
+   const raw=await request.text();if(raw.length>100000)return json({error:'Слишком большой запрос'},413);
+   const data=JSON.parse(raw);
+   if(typeof data.title!=='string'||!data.title.trim()||data.title.length>100||!Array.isArray(data.questions)||data.questions.length<1||data.questions.length>50||!data.questions.every(q=>typeof q.q==='string'&&q.q.trim()&&q.q.length<=500&&Array.isArray(q.options)&&q.options.length===4&&q.options.every(a=>typeof a==='string'&&a.trim()&&a.length<=200)&&Number.isInteger(q.correct)&&q.correct>=0&&q.correct<4))return json({error:'Проверьте вопросы и варианты ответов'},400);
+   await env.DB.prepare('INSERT INTO million_config (id,payload,updated_at) VALUES (1,?,CURRENT_TIMESTAMP) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload,updated_at=CURRENT_TIMESTAMP').bind(JSON.stringify({title:data.title.trim(),questions:data.questions})).run();return json({ok:true});
+  }
+  return json({error:'Метод не поддерживается'},405);
+ }catch(e){console.error('Million API error',e);return json({error:'Ошибка API игры «Миллион»; проверьте миграцию 0002',code:'MILLION_DB_ERROR'},500)}
+}
 if(url.pathname!=='/api/config')return env.ASSETS.fetch(request);
 if(!env.DB)return json({error:'D1 не подключена'},503);
 try{if(request.method==='GET'){const record=await env.DB.prepare('SELECT payload FROM game_config WHERE id=1').first();return json(record?JSON.parse(record.payload):initial)}
