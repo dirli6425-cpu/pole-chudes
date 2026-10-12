@@ -92,3 +92,29 @@
 .wheel-stage{perspective:none;filter:drop-shadow(0 15px 12px #02040bcc)}
 .wheel-disk{transform-style:flat;isolation:isolate;box-shadow:0 11px 0 #48250c,0 14px 0 #b88449,0 18px 0 #241006,0 24px 20px #000b,0 0 0 5px #e8d6a3,0 0 0 10px #3c220e,0 0 35px #ffd68c60}
 .wheel-hub{display:none} /* Центральная ось нарисована поверх реквизита в SVG */
+
+
+/* v7.3: accurately centered spinning stage, independent of the grid/flex's stretching. */
+.wheel-stage{position:relative;display:block;aspect-ratio:1/1;flex:0 0 auto;min-height:0;min-width:0;align-self:center;box-sizing:border-box;isolation:isolate}
+.wheel-stage .wheel-disk{position:absolute!important;top:50%!important;left:50%!important;width:88%!important;height:88%!important;margin-top:-44%!important;margin-left:-44%!important;aspect-ratio:1/1!important;min-width:0;min-height:0;max-width:none;max-height:none;transform-origin:center center;box-sizing:border-box}
+.wheel-stage .wheel-disk svg{width:100%;height:100%}
+.wheel-stage .wheel-pointer{left:50%;top:0;z-index:9}
+.wheel-stage .wheel-glow{pointer-events:none}
+/* Projector: calculate the drum size from remaining available height; never let it stretch beyond the stage. */
+@media(min-width:741px){
+ body[data-screen=game] .wheel-side{min-height:0;justify-content:center;align-items:center}
+ body[data-screen=game] .wheel-stage{width:min(100%,45vh,430px)!important;height:auto!important;max-height:none!important;flex:0 1 auto!important;margin:4px auto 6px!important}
+ body[data-screen=game] .spin-button{position:relative;z-index:2}
+}
+@media(min-width:741px) and (max-height:700px){body[data-screen=game] .wheel-stage{width:min(100%,38vh,345px)!important}}
+@media(max-width:740px){.wheel-stage{width:min(84vw,385px)!important;height:auto!important;margin:7px auto 14px!important}}
+/* Title: clone of the EXACT same top-down drum with flowers, baskets and sectors. */
+#intro{isolation:isolate}
+#intro .hero-wheel{position:absolute!important;z-index:0;left:50%;top:50%;width:min(64vmin,680px);height:auto;aspect-ratio:1;box-sizing:border-box;border:0;box-shadow:0 0 55px #ffd07844;opacity:.65;transform:translate(-50%,-50%);background:none;border-radius:50%;overflow:visible;animation:introStudioSpin 38s linear infinite;will-change:transform;pointer-events:none}
+#intro .hero-wheel:after{display:none}
+#intro .hero-wheel svg{display:block;width:100%;height:100%;filter:drop-shadow(0 0 15px #ffb44e80)}
+#intro::before{z-index:1;background:radial-gradient(ellipse 58% 62% at center,#040912a8 0%,#050b14bb 56%,#04091288 80%,#04091255 100%)}
+#intro>:not(.hero-wheel){position:relative;z-index:2}
+@keyframes introStudioSpin{from{transform:translate(-50%,-50%) rotate(0deg)}to{transform:translate(-50%,-50%) rotate(360deg)}}
+@media(max-width:700px){#intro .hero-wheel{width:min(97vw,480px);top:47%;opacity:.55}}
+@media(prefers-reduced-motion:reduce){#intro .hero-wheel{animation:none}}

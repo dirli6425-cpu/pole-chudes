@@ -147,6 +147,9 @@ function wheelSvg(){
  text('✦',{x:0,y:3,'text-anchor':'middle','dominant-baseline':'middle','font-size':38,fill:'#ffdf90'});
 }
 wheelSvg();
+// The splash screen uses the very same generated studio wheel, not a CSS mockup.
+const introWheelSvg=$('introWheelSvg');
+if(introWheelSvg)introWheelSvg.innerHTML=$('wheelSvg').innerHTML;
 function show(view){['intro','game','finish','editor'].forEach(id=>$(id).classList.toggle('hidden',id!==view));document.body.dataset.screen=view;if(view==='game')render();if(view!=='editor')saveProgress()}
 function renderGroupsAndScore(){
  const board=$('playerBoard');board.replaceChildren();
