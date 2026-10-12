@@ -94,17 +94,18 @@ function choose(i){
  buttons.forEach((b,j)=>{b.disabled=true;if(j===i)b.classList.add('selected')});
  $('notice').textContent='Ответ '+letters[i]+' принят. И это...';
  $('next').classList.add('hidden');
- sound('suspense');
+ playSuspense();
  setTimeout(()=>{
+  stopSuspense();
   buttons.forEach((b,j)=>{if(j===q.correct)b.classList.add('correct');if(j===i&&i!==q.correct)b.classList.add('wrong')});
   const right=i===q.correct;
   $('notice').textContent=right?'✦ ВЕРНО! '+money[Math.min(index,14)]+' очков!':'✕ НЕВЕРНО! Правильный ответ: '+letters[q.correct];
   sound(right?'correct':'wrong');finished=true;
   $('next').textContent=right?(index+1<config.questions.length?'Следующий вопрос →':'Завершить игру'):'Завершить игру';
   $('next').classList.remove('hidden');$('next').dataset.lost=right?'0':'1';
- },1650);
+ },5500);
 }
-$('startButton').onclick=()=>{sound('start');$('next').dataset.lost='0';if(!config.questions.length){alert('Сначала добавьте вопросы в настройках');return}index=0;used={fifty:false,audience:false,swap:false};removed=[];locked=false;finished=false;$('notice').textContent='';render();show('play')};$('next').onclick=()=>{if($('next').dataset.lost==='1'){show('intro');$('introTitle').textContent='Игра окончена';$('next').dataset.lost='0';return}if(index+1>=config.questions.length){show('intro');$('introTitle').textContent='Игра завершена!';return}index++;locked=false;finished=false;removed=[];$('notice').textContent='';render()};$('restart').onclick=()=>{if(confirm('Начать игру заново?'))$('startButton').click()};$('fifty').onclick=()=>{if(locked||used.fifty)return;sound('click');used.fifty=true;const q=config.questions[index];removed=[0,1,2,3].filter(i=>i!==q.correct).sort(()=>Math.random()-.5).slice(0,2);render()};$('audience').onclick=()=>{if(locked||used.audience)return;sound('click');used.audience=true;const q=config.questions[index];const guess=Math.floor(65+Math.random()*25);$('notice').textContent='📊 Мнение зала (демо): '+letters[q.correct]+' — '+guess+'% голосов';render()};$('swap').onclick=()=>{if(locked||used.swap||index>=config.questions.length-1)return;sound('click');used.swap=true;index++;removed=[];locked=false;finished=false;$('notice').textContent='Вопрос заменён';render()};$('fullButton').onclick=()=>{if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.()};function editRow(q,i){const el=document.createElement('div');el.className='edititem';el.innerHTML='<strong>Вопрос '+(i+1)+'</strong><label>Текст вопроса<input class="q" maxlength="500" value="'+escapeHtml(q.q)+'"></label><div class="options">'+q.options.map((a,j)=>'<label>Вариант '+letters[j]+'<input class="opt" maxlength="200" value="'+escapeHtml(a)+'"></label>').join('')+'</div><label>Правильный вариант <select class="correct">'+letters.map((l,j)=>'<option value="'+j+'" '+(j===q.correct?'selected':'')+'>'+l+'</option>').join('')+'</select></label><button class="hint delete">Удалить вопрос</button>';el.querySelector('.delete').onclick=()=>{el.remove();renumber()};return el}function renumber(){[...$('questionList').children].forEach((el,i)=>el.querySelector('strong').textContent='Вопрос '+(i+1))}function openEditor(){$('gameTitle').value=config.title;$('questionList').innerHTML='';config.questions.forEach((q,i)=>$('questionList').append(editRow(q,i)));show('editor')}$('editButton').onclick=openEditor;$('cancel').onclick=()=>show('intro');$('add').onclick=()=>{if($('questionList').children.length>=50)return alert('Максимум 50 вопросов');$('questionList').append(editRow({q:'',options:['','','',''],correct:0},$('questionList').children.length))};async function auth(){const r=await fetch('/api/auth',{cache:'no-store'});if(r.ok&&(await r.json()).authenticated)return true;const password=prompt('Введите пароль администратора (один раз на 90 дней):');if(!password)return false;const p=await fetch('/api/auth',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password})});const d=await p.json();if(!p.ok)throw Error(d.error||'Ошибка входа');return true}$('save').onclick=async()=>{const qs=[...$('questionList').children].map(el=>({q:el.querySelector('.q').value.trim(),options:[...el.querySelectorAll('.opt')].map(x=>x.value.trim()),correct:Number(el.querySelector('.correct').value)}));const data={title:$('gameTitle').value.trim(),questions:qs};if(!data.title||!qs.length||qs.some(q=>!q.q||q.options.some(a=>!a)))return alert('Заполните название, вопросы и все 4 ответа');try{if(!await auth())return;const r=await fetch('/api/million',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(data)});const d=await r.json();if(!r.ok)throw Error(d.error||'Ошибка сохранения');config=data;$('introTitle').textContent=data.title;show('intro');alert('✓ Вопросы сохранены в Cloudflare D1')}catch(e){alert('Ошибка: '+e.message)}};load();
+$('startButton').onclick=()=>{stopSuspense();sound('start');$('next').dataset.lost='0';if(!config.questions.length){alert('Сначала добавьте вопросы в настройках');return}index=0;used={fifty:false,audience:false,swap:false};removed=[];locked=false;finished=false;$('notice').textContent='';render();show('play')};$('next').onclick=()=>{stopSuspense();if($('next').dataset.lost==='1'){show('intro');$('introTitle').textContent='Игра окончена';$('next').dataset.lost='0';return}if(index+1>=config.questions.length){show('intro');$('introTitle').textContent='Игра завершена!';return}index++;locked=false;finished=false;removed=[];$('notice').textContent='';render()};$('restart').onclick=()=>{if(confirm('Начать игру заново?'))$('startButton').click()};$('fifty').onclick=()=>{if(locked||used.fifty)return;sound('click');used.fifty=true;const q=config.questions[index];removed=[0,1,2,3].filter(i=>i!==q.correct).sort(()=>Math.random()-.5).slice(0,2);render()};$('audience').onclick=()=>{if(locked||used.audience)return;sound('click');used.audience=true;const q=config.questions[index];const guess=Math.floor(65+Math.random()*25);$('notice').textContent='📊 Мнение зала (демо): '+letters[q.correct]+' — '+guess+'% голосов';render()};$('swap').onclick=()=>{if(locked||used.swap||index>=config.questions.length-1)return;sound('click');used.swap=true;index++;removed=[];locked=false;finished=false;$('notice').textContent='Вопрос заменён';render()};$('fullButton').onclick=()=>{if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.()};function editRow(q,i){const el=document.createElement('div');el.className='edititem';el.innerHTML='<strong>Вопрос '+(i+1)+'</strong><label>Текст вопроса<input class="q" maxlength="500" value="'+escapeHtml(q.q)+'"></label><div class="options">'+q.options.map((a,j)=>'<label>Вариант '+letters[j]+'<input class="opt" maxlength="200" value="'+escapeHtml(a)+'"></label>').join('')+'</div><label>Правильный вариант <select class="correct">'+letters.map((l,j)=>'<option value="'+j+'" '+(j===q.correct?'selected':'')+'>'+l+'</option>').join('')+'</select></label><button class="hint delete">Удалить вопрос</button>';el.querySelector('.delete').onclick=()=>{el.remove();renumber()};return el}function renumber(){[...$('questionList').children].forEach((el,i)=>el.querySelector('strong').textContent='Вопрос '+(i+1))}function openEditor(){$('gameTitle').value=config.title;$('questionList').innerHTML='';config.questions.forEach((q,i)=>$('questionList').append(editRow(q,i)));show('editor')}$('editButton').onclick=openEditor;$('cancel').onclick=()=>show('intro');$('add').onclick=()=>{if($('questionList').children.length>=50)return alert('Максимум 50 вопросов');$('questionList').append(editRow({q:'',options:['','','',''],correct:0},$('questionList').children.length))};async function auth(){const r=await fetch('/api/auth',{cache:'no-store'});if(r.ok&&(await r.json()).authenticated)return true;const password=prompt('Введите пароль администратора (один раз на 90 дней):');if(!password)return false;const p=await fetch('/api/auth',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password})});const d=await p.json();if(!p.ok)throw Error(d.error||'Ошибка входа');return true}$('save').onclick=async()=>{const qs=[...$('questionList').children].map(el=>({q:el.querySelector('.q').value.trim(),options:[...el.querySelectorAll('.opt')].map(x=>x.value.trim()),correct:Number(el.querySelector('.correct').value)}));const data={title:$('gameTitle').value.trim(),questions:qs};if(!data.title||!qs.length||qs.some(q=>!q.q||q.options.some(a=>!a)))return alert('Заполните название, вопросы и все 4 ответа');try{if(!await auth())return;const r=await fetch('/api/million',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(data)});const d=await r.json();if(!r.ok)throw Error(d.error||'Ошибка сохранения');config=data;$('introTitle').textContent=data.title;show('intro');alert('✓ Вопросы сохранены в Cloudflare D1')}catch(e){alert('Ошибка: '+e.message)}};load();
 
 let audioCtx=null,muted=false;
 function getAudio(){
@@ -131,8 +132,47 @@ function sound(type,force=false){
   });
  }catch(e){$('error').textContent='⚠ Звук недоступен: '+e.message}
 }
+
+// Оригинальная напряжённая музыкальная подложка: пульс, низкие струны и нарастающие аккорды.
+// Запускается по нажатию ответа и прекращается перед раскрытием правильного варианта.
+let suspenseNodes=[];
+function stopSuspense(){
+ for(const node of suspenseNodes){try{node.stop()}catch(e){}}
+ suspenseNodes=[];
+}
+function playSuspense(){
+ if(muted)return;
+ try{
+  const ctx=getAudio(),start=ctx.currentTime+.025;
+  stopSuspense();
+  const note=(hz,at,duration,volume,type='sine')=>{
+   const osc=ctx.createOscillator(),g=ctx.createGain(),begin=start+at;
+   osc.type=type;osc.frequency.setValueAtTime(hz,begin);
+   g.gain.setValueAtTime(.0001,begin);
+   g.gain.exponentialRampToValueAtTime(Math.max(.0002,volume),begin+.055);
+   g.gain.setValueAtTime(Math.max(.0002,volume),begin+Math.max(.065,duration-.13));
+   g.gain.exponentialRampToValueAtTime(.0001,begin+duration);
+   osc.connect(g);g.connect(ctx.destination);
+   osc.start(begin);osc.stop(begin+duration+.015);
+   suspenseNodes.push(osc);
+  };
+  // Глухой тревожный пульс с ускорением к финалу
+  let t=0,n=0;
+  while(t<5.2){
+   note(n%4===0?73.42:82.41,t,.21,.085,'triangle');
+   note(146.83,t,.09,.026,'sine');
+   t+=Math.max(.24,.51-n*.018);n++;
+  }
+  // Постепенное нарастание напряжённого минорного аккорда
+  [110,130.81,164.81,220].forEach((f,i)=>note(f,.2+i*.75,4.8-i*.7,.019+i*.008,'sawtooth'));
+  [329.63,349.23,392,440,493.88].forEach((f,i)=>note(f,2.65+i*.48,.72,.038+i*.006,'triangle'));
+  note(587.33,4.9,.45,.075,'triangle');
+ }catch(e){$('error').textContent='⚠ Звук недоступен: '+e.message}
+}
+
 $('soundButton').onclick=()=>{
  muted=!muted;
+ if(muted)stopSuspense();
  $('soundButton').textContent=muted?'🔇 Звук выкл.':'🔊 Звук вкл.';
  $('soundButton').setAttribute('aria-pressed',String(!muted));
  if(!muted)sound('start',true);
