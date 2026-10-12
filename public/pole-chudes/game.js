@@ -161,8 +161,7 @@ function renderGroupsAndScore(){
   const suffix=document.createElement('small');suffix.textContent=i===player?'▶ СЕЙЧАС ИГРАЕТ':'НАЖМИТЕ, ЧТОБЫ ВЫБРАТЬ';
   b.append(name,score,suffix);b.onclick=()=>{if(stage!=='ready'||complete())return;player=i;message('Теперь играет '+groupName(player));render();saveProgress()};board.append(b)
  });
- const tray=$('giftShelf');tray.replaceChildren();const title=document.createElement('div');title.className='shelf-title';title.textContent='ПОДАРКИ УЧАСТНИКОВ';tray.append(title);
- groups.forEach((g,i)=>{const div=document.createElement('div');div.className='shelf-row';div.textContent=`${groupName(i)}: ${gifts[i].length?gifts[i].join(' · '):'пока нет'}`;tray.append(div)})
+ const tray=$('giftShelf');if(tray)tray.hidden=true;
 }
 function groupName(i){const g=groups[i]||String(i+1);return /^\d+$/.test(g)?'группа '+g:g}
 function message(s,type=''){const el=$('status');el.textContent=s;el.className='status '+type}
@@ -176,7 +175,7 @@ function render(){
  $('next').classList.toggle('hidden',!complete());$('next').textContent=index===rounds.length-1?'Завершить игру 🏆':'Следующий тур →';
  $('spinButton').disabled=stage!=='ready'||complete();$('spinButton').textContent=stage==='spinning'?'⏳ БАРАБАН ВРАЩАЕТСЯ…':stage==='ready'?'🎡 ВРАЩАТЬ БАРАБАН':stage==='roundDone'?'🏆 ТУР ЗАВЕРШЁН':'⏳ СНАЧАЛА ВЫПОЛНИТЕ ЗАДАНИЕ';
  $('manualPass').disabled=stage==='spinning'||stage==='box'||stage==='gift'||complete();$('revealWord').disabled=stage==='spinning'||complete();
- const guide=complete()?'Слово открыто! Ведущий нажимает «Следующий тур».':stage==='ready'?`Ход ${groupName(player)}. Нажмите «Вращать барабан» или выберите другую группу.`:stage==='spinning'?'Барабан набирает обороты, затем плавно остановится на случайном секторе.':stage==='letter'?`Назовите букву. За каждое совпадение получите ${currentSector?.points||0} очков. При ошибке ход переходит дальше.`:stage==='plus'?'Сектор «Плюс»: выберите любую ещё закрытую букву — она откроется бесплатно.':stage==='box'?'Выберите одну из двух шкатулок. Только в одной спрятаны деньги.':stage==='gift'?'Ведущий вручает подарок и подтверждает продолжение.':'Следуйте подсказке ведущего.';
+ const guide=complete()?'Слово открыто! Ведущий нажимает «Следующий тур».':stage==='ready'?`Ход ${groupName(player)}. Нажмите «Вращать барабан» или выберите другую группу.`:stage==='spinning'?'Барабан набирает обороты, затем плавно остановится на случайном секторе.':stage==='letter'?`Назовите букву. За каждое совпадение получите ${currentSector?.points||0} очков. При ошибке ход переходит дальше.`:stage==='plus'?'Сектор «Плюс»: выберите любую ещё закрытую букву — она откроется бесплатно.':stage==='box'?'Выберите одну из двух шкатулок. Подарок определяет ведущий.':stage==='gift'?'Ведущий вручает подарок и подтверждает продолжение.':'Следуйте подсказке ведущего.';
  $('guideText').textContent=guide;
  if(complete()){if(!$('status').textContent.includes('открыто'))message(`🏆 Слово отгадано! Победитель тура: ${groupName(player)}.`,'good')}
  renderGroupsAndScore();
@@ -196,7 +195,7 @@ function spin(){
  clearTimeout(spinTimer);spinTimer=setTimeout(()=>{if(stage==='spinning')finishSpin(choice)},6650);
 }
 function finishSpin(i){$('wheelPointer').classList.remove('clicking');stopTvSound();const sec=sectors[i];currentSector={...sec};
- const kind=sec.kind;setResult(sec.t,kind==='points'?`${sec.points} очков за каждую открытую букву`:kind==='double'?'Двойные очки за букву':kind==='boxes'?'Две шкатулки, одна с деньгами':kind==='prize'?'Сюрприз для участников':kind==='plus'?'Бесплатно откройте букву':kind==='pass'?'Ход переходит дальше':kind==='bankrupt'?'Очки текущей группы обнуляются':'',kind);
+ const kind=sec.kind;setResult(sec.t,kind==='points'?`${sec.points} очков за каждую открытую букву`:kind==='double'?'Двойные очки за букву':kind==='boxes'?'Две шкатулки — подарок определяет ведущий':kind==='prize'?'Сюрприз для участников':kind==='plus'?'Бесплатно откройте букву':kind==='pass'?'Ход переходит дальше':kind==='bankrupt'?'Очки текущей группы обнуляются':'',kind);
  if(kind==='points'||kind==='double'){
   if(kind==='double')currentSector.points=800;
   stage='letter';message(`🎯 ${groupName(player)} — назовите букву!`, 'good');if(kind==='double')playTvSound('plus');else playLandingChime();
@@ -208,18 +207,19 @@ function finishSpin(i){$('wheelPointer').classList.remove('clicking');stopTvSoun
   scores[player]=0;const prev=groupName(player);playTvSound('pass');nextPlayer();message(`💥 БАНКРОТ! Очки ${prev} обнулены. Ход переходит дальше.`,'bad');return;
  }else if(kind==='boxes'){
   stage='box';playTvSound('prizes');const correctBox=randomIndex(2);
-  modal('📦','ДВЕ ШКАТУЛКИ','В одной спрятаны 2 000 очков. Игрок выбирает одну, ведущий открывает её.',[
+  modal('📦','ДВЕ ШКАТУЛКИ','В одной шкатулке подарок организаторов, другая пустая. Игрок выбирает одну.',[
     {text:'📦 Шкатулка № 1',act:()=>openBox(0,correctBox)},{text:'📦 Шкатулка № 2',act:()=>openBox(1,correctBox)}]);
  }else{
-  stage='gift';playTvSound('prizes');const prizePool=[['💐','ВАЗА С ЦВЕТАМИ','Ведущий вручает вазу с цветами группе '+groups[player],'Ваза с цветами'],['🧺','КОРЗИНА С ПРОДУКТАМИ','Ведущий вручает продуктовую корзину группе '+groups[player],'Продуктовая корзина'],['🎁','ПРИЗ В СТУДИЮ','Ведущий вручает приз группе '+groups[player],'Приз']];
-  const [icon,title,desc,giftName]=prizePool[randomIndex(prizePool.length)];
-  modal(icon,title,desc,[{text:'🎁 Приз вручен — продолжить',act:()=>{gifts[player].push(icon+' '+giftName);clearModal();stage='ready';currentSector=null;message('🎁 Подарок вручён! Можно снова вращать барабан.','good');saveGameAndRender()} }]);
+  stage='gift';playTvSound('prizes');
+  modal('🎁','ПРИЗ В СТУДИЮ!',`Для ${groupName(player)} ведущий выбирает и вручает подготовленный организаторами подарок. Сайт не назначает награду.`,[
+    {text:'Подарок вручён — продолжить →',act:()=>{clearModal();stage='ready';currentSector=null;message('🎁 Ведущий вручил свой подарок. Можно вращать барабан.','good');saveGameAndRender()}}
+  ]);
  }
  saveGameAndRender();
 }
-function openBox(chosen,correct){const winning=chosen===correct;clearModal();if(winning){scores[player]+=2000;gifts[player].push('💰 Шкатулка');playTvSound('money')}else{playTvSound('empty')}
- stage='gift';modal(winning?'💰':'📭',winning?'ШКАТУЛКА С ДЕНЬГАМИ!':'ПУСТАЯ ШКАТУЛКА',winning?'Поздравляем! +2 000 очков для '+groupName(player)+'.':'Увы, в этой шкатулке пусто. Продолжаем игру.',[
- {text:'Продолжить игру →',act:()=>{clearModal();stage='ready';currentSector=null;message(winning?'💰 Призовые очки начислены!':'📭 Шкатулка пустая, вращайте барабан.','good');saveGameAndRender()}}
+function openBox(chosen,correct){const winning=chosen===correct;clearModal();if(winning){playTvSound('money')}else{playTvSound('empty')}
+ stage='gift';modal(winning?'💰':'📭',winning?'ШКАТУЛКА С ПОДАРКОМ!':'ПУСТАЯ ШКАТУЛКА',winning?'Поздравляем! Ведущий вручает подготовленный подарок для '+groupName(player)+'.':'Увы, в этой шкатулке пусто. Продолжаем игру.',[
+ {text:'Продолжить игру →',act:()=>{clearModal();stage='ready';currentSector=null;message(winning?'🎁 Подарок вручён ведущим!':'📭 Шкатулка пустая, вращайте барабан.','good');saveGameAndRender()}}
  ]);saveGameAndRender()}
 function guess(c){
  if((stage!=='letter'&&stage!=='plus')||guessed.has(c)||complete())return;
