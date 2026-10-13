@@ -1,4 +1,4 @@
-<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#080d16"><title>Поле чудес — Телестудия техникума</title><link rel="stylesheet" href="/pole-chudes/studio.css?v=73"><style>
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#080d16"><title>Поле чудес — Телестудия техникума</title><link rel="stylesheet" href="/pole-chudes/studio.css?v=75"><style>
 /* Запрет выделения на игровых экранах; настройки остаются редактируемыми */
 body { -webkit-user-select:none; user-select:none; }
 #editor, #editor * { -webkit-user-select:text; user-select:text; }
@@ -111,37 +111,69 @@ body{overflow-x:hidden}
  .hero-wheel{width:min(40vw,300px)}
  .hero h2{font-size:clamp(60px,10vw,95px)}
 }
-.tv-host{max-width:1050px;margin:18px auto 5px;padding:13px;border:1px solid #d4a45c;border-radius:16px;background:linear-gradient(130deg,#101a2f,#1c1520)}.tv-title{font-size:12px;letter-spacing:2px;color:#f9d88e;font-weight:900;margin-bottom:11px;text-align:center}.tv-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.tv-actions button{font-size:12px;padding:9px 11px;border-radius:8px}@media(max-width:680px){.tv-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.tv-actions button{font-size:11px;padding:10px 5px;min-height:43px}.tv-title{font-size:10px}}</style></head>
+.tv-host{max-width:1050px;margin:18px auto 5px;padding:13px;border:1px solid #d4a45c;border-radius:16px;background:linear-gradient(130deg,#101a2f,#1c1520)}.tv-title{font-size:12px;letter-spacing:2px;color:#f9d88e;font-weight:900;margin-bottom:11px;text-align:center}.tv-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.tv-actions button{font-size:12px;padding:9px 11px;border-radius:8px}@media(max-width:680px){.tv-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.tv-actions button{font-size:11px;padding:10px 5px;min-height:43px}.tv-title{font-size:10px}}
+/* 7.5: physical wheel. One projector canvas, letter keyboard on the right. */
+body[data-screen="game"]{overflow:hidden}
+body[data-screen="game"] #game.game-stage{display:flex!important;flex-direction:column;width:100%;max-width:1600px;height:calc(100dvh - 86px)!important;min-height:0!important;padding:9px 14px 8px;overflow:hidden!important;margin:0 auto!important}
+body[data-screen="game"] #game.hidden{display:none!important}
+.physical-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,350px);gap:14px;flex:1;min-height:0;align-items:stretch}
+.stage-left{display:flex;flex-direction:column;align-items:stretch;min-width:0;min-height:0;gap:14px;justify-content:center}
+body[data-screen="game"] .game-stage .question{max-width:none!important;max-height:none!important;min-height:110px;font-size:clamp(18px,2.2vw,36px)!important;line-height:1.35;display:flex;align-items:center;justify-content:center;flex:0 1 auto;padding:24px}
+body[data-screen="game"] .game-stage .tiles{margin:16px 0!important;justify-content:center;gap:5px!important;flex-wrap:nowrap;min-width:0}
+body[data-screen="game"] .game-stage .tile{width:clamp(32px,4vw,66px)!important;height:clamp(45px,8vh,88px)!important;font-size:clamp(21px,3vw,44px)!important;flex:0 1 auto}
+body[data-screen="game"] .players{gap:10px!important;margin:14px 0!important}
+body[data-screen="game"] .player-card{padding:12px!important;flex:1}
+body[data-screen="game"] .player-card strong{font-size:clamp(21px,3vh,36px)!important}
+.live-status{display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;min-height:84px}
+body[data-screen="game"] .sector-result{min-width:min(440px,98%);display:flex;gap:16px;align-items:center;justify-content:center;padding:12px 18px!important;min-height:0}
+body[data-screen="game"] #resultBig{font-size:clamp(18px,2vw,28px);font-weight:900;color:#ffe3a0}
+body[data-screen="game"] #resultSmall{font-size:clamp(11px,1.2vw,14px)}
+body[data-screen="game"] #status{font-size:clamp(13px,1.35vw,17px)!important;text-align:center;min-height:23px}
+.fast-panel{display:flex;min-height:0;flex-direction:column;padding:12px;border:1px solid #ba9458;background:linear-gradient(150deg,#132139,#101521);border-radius:18px;gap:7px;overflow:hidden}
+.fast-title{font-weight:900;color:#ffe0a1;letter-spacing:1px;text-align:center;font-size:clamp(12px,1.2vw,16px)}
+.fast-sub{padding-top:5px;font-size:11px}
+body[data-screen="game"] .letters-heading{font-size:10px!important;margin:0!important;letter-spacing:1px;text-align:center}
+body[data-screen="game"] .game-stage .letters{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px!important;width:100%;max-width:none!important;margin:0!important;flex:none}
+body[data-screen="game"] .game-stage .letters button{width:100%!important;height:clamp(29px,4.7vh,47px)!important;padding:0!important;font-size:clamp(12px,1.5vw,19px)!important;min-width:0}
+.manual-sectors{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+.manual-sectors button{padding:7px 2px;border-radius:7px;font-size:12px;box-shadow:none;min-width:0}
+.manual-sectors button.selected{background:#2fbc91;color:white;border-color:#8affd8}
+.sound-pad{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+.sound-pad button{background:linear-gradient(#304363,#19233a);border-color:#856b4a;color:#fff1d4;padding:6px 2px;border-radius:7px;font-size:clamp(10px,1vw,12px);box-shadow:none;min-width:0}
+body[data-screen="game"] .host-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin-top:auto}
+body[data-screen="game"] .host-buttons button{padding:8px 4px!important;min-height:35px;font-size:11px!important;box-shadow:none}
+body[data-screen="game"] .bottom-actions{display:flex;justify-content:center;gap:10px;margin-top:auto!important;flex:0 0 auto}
+body[data-screen="game"] .bottom-actions button{padding:11px 16px!important;font-size:13px!important}
+.hidden-compat{position:absolute;left:-99999px;top:-99999px;width:1px;height:1px;overflow:hidden;visibility:hidden}
+body[data-screen="game"] footer{display:none}
+@media (max-width:800px){body[data-screen="game"]{overflow:auto}body[data-screen="game"] #game.game-stage{height:auto!important;min-height:100dvh!important;overflow:visible!important}.physical-layout{grid-template-columns:1fr;gap:9px}.stage-left{gap:5px}body[data-screen="game"] .game-stage .question{font-size:clamp(16px,4vw,24px)!important;min-height:70px;padding:12px}body[data-screen="game"] .game-stage .tiles{margin:8px 0!important;flex-wrap:wrap}body[data-screen="game"] .game-stage .tile{width:clamp(24px,7vw,40px)!important;height:45px!important;font-size:22px!important}body[data-screen="game"] .players{margin:6px 0!important}body[data-screen="game"] .player-card{padding:7px!important}.fast-panel{overflow:visible}.fast-title{font-size:13px}.fast-sub{font-size:11px}body[data-screen="game"] .game-stage .letters button{height:44px!important;font-size:17px!important}.sound-pad button{font-size:12px;min-height:38px}}
+@media (min-width:801px) and (max-height:740px){body[data-screen="game"] #game.game-stage{height:calc(100dvh - 65px)!important;padding:5px 10px!important}.stage-left{gap:4px}body[data-screen="game"] .game-stage .question{min-height:62px!important;padding:8px!important;font-size:clamp(16px,2.3vh,22px)!important}body[data-screen="game"] .game-stage .tiles{margin:5px 0!important}body[data-screen="game"] .game-stage .tile{height:43px!important}body[data-screen="game"] .players{margin:4px 0!important}body[data-screen="game"] .player-card{padding:5px!important}.fast-panel{padding:7px;gap:3px}body[data-screen="game"] .game-stage .letters button{height:clamp(25px,4.1vh,33px)!important}.sound-pad button{padding:5px 2px}body[data-screen="game"] .sector-result{padding:6px!important}.live-status{min-height:55px}}
+</style></head>
 <body><div class="wrap"><header><div><div class="tag">ИНТЕЛЛЕКТУАЛЬНАЯ ИГРА · 3 ГРУППЫ</div><h1>✦ ПОЛЕ ЧУДЕС</h1></div><div class="header-actions"><button class="secondary" id="fullscreen">⛶ На весь экран</button><button class="secondary" id="settings">⚙ Настройки</button></div></header><div id="dbError" role="alert" style="text-align:center;color:#ffb3a7;background:#481c23;padding:7px;font-weight:700"></div><main>
 <section class="hero" id="intro"><div class="hero-wheel" aria-hidden="true"><svg id="introWheelSvg" viewBox="-255 -255 510 510" focusable="false"></svg></div><div class="hero-top">ИНТЕЛЛЕКТУАЛЬНАЯ ИГРА ДЛЯ ТРЁХ ГРУПП</div><h2>ПОЛЕ<br>ЧУДЕС</h2><div class="group-heading">УЧАСТНИКИ ИГРЫ</div><div class="hero-groups" id="heroGroups"></div><button class="start" id="start">НАЧАТЬ ИГРУ ▶</button><div class="hero-stats"><span>🏆 <b id="roundCount">5</b> туров</span><span>♟ <b>3</b> группы</span><span>✦ Интеллектуальная игра</span></div></section>
 <section class="panel game-stage hidden" id="game">
- <div class="show-head"><span class="on-air"><i></i> ПРЯМОЙ ЭФИР</span><strong id="counter">ТУР 1</strong><button class="secondary sound-toggle" id="tvMute" type="button">🔊 ЗВУК</button></div>
- <div class="question" id="question"></div>
- <div class="tiles" id="tiles"></div>
- <div class="players" id="playerBoard" aria-label="Участники и результаты"></div>
- <div class="play-layout">
-  <div class="wheel-side">
-   <div class="wheel-stage">
-    <div class="wheel-glow"></div>
-    <div class="wheel-pointer" id="wheelPointer" aria-hidden="true"><span></span></div>
-    <div class="wheel-disk" id="wheelDisk"><svg id="wheelSvg" viewBox="-255 -255 510 510" aria-label="Игровой барабан с секторами" role="img"></svg><div class="wheel-hub"><div class="wheel-hub-inner">✦</div></div></div>
-   </div>
-   <button id="spinButton" class="spin-button" type="button">🎡 ВРАЩАТЬ БАРАБАН</button>
-   <div class="wheel-hint">20 секторов · вазы и корзины на барабане · вид сверху</div>
+ <div class="show-head"><span class="on-air"><i></i> ПОЛЕ ЧУДЕС · ТЕХНИКУМ</span><strong id="counter">ТУР 1</strong><button class="secondary sound-toggle" id="tvMute" type="button">🔊 ЗВУК</button></div>
+ <div class="physical-layout">
+  <div class="stage-left">
+   <div class="question" id="question"></div>
+   <div class="tiles" id="tiles"></div>
+   <div class="players" id="playerBoard"></div>
+   <div class="live-status"><div id="sectorResult" class="sector-result"><span id="resultBig">ГОТОВЫ?</span><span id="resultSmall">Вращайте настоящий барабан</span></div><div class="status" id="status" aria-live="polite"></div></div>
+   <div class="controls bottom-actions"><button class="secondary" id="reset">↻ Повторить тур</button><button class="secondary" id="revealWord">🔓 Открыть слово</button><button class="hidden" id="next">Следующий тур →</button></div>
   </div>
-  <div class="host-side">
-   <div class="host-caption">🎙 ПУЛЬТ ВЕДУЩЕГО</div>
-   <div class="sector-result" id="sectorResult"><div class="result-label">НА БАРАБАНЕ</div><div class="result-big" id="resultBig">ГОТОВЫ?</div><div class="result-small" id="resultSmall">Выберите игрока и раскрутите барабан</div></div>
-   <div class="status" id="status" aria-live="polite"></div>
-   <div class="guide-card"><div class="guide-title">ЧТО ДЕЛАТЬ СЕЙЧАС</div><div id="guideText">Нажмите «Вращать барабан».</div></div>
-   <div class="host-buttons"><button type="button" class="secondary" id="manualPass">↪ Передать ход</button><button type="button" class="secondary" id="revealWord">🔓 Открыть слово</button></div>
-   <div id="giftShelf" class="gift-shelf"></div>
-  </div>
+  <aside class="fast-panel">
+   <div class="fast-title">🎙 ПУЛЬТ ВЕДУЩЕГО</div>
+   <div class="letters-heading">НАЗВАННЫЕ БУКВЫ · НАЖМИТЕ БУКВУ</div><div class="letters" id="letters"></div>
+   <div class="fast-title fast-sub">🎡 ВЫПАЛО НА БАРАБАНЕ</div>
+   <div class="manual-sectors"><button data-points="100">100</button><button data-points="200">200</button><button data-points="300">300</button><button data-points="400">400</button><button data-points="500">500</button><button data-points="600">600</button><button data-points="700">700</button><button data-points="800">800</button><button data-sector="plus">✚ ПЛЮС</button><button data-sector="bankrupt">БАНКРОТ</button></div>
+   <div class="fast-title fast-sub">🔊 ЗВУКИ · ПО НАЖАТИЮ</div>
+   <div class="sound-pad"><button data-sound="prizes">🎁 Приз в студию</button><button data-sound="pass">↪ Переход хода</button><button data-sound="plus">✚ Сектор плюс</button><button data-sound="empty">📦 Пустая шкатулка</button><button data-sound="money">💰 Шкатулка с призом</button><button data-sound="spin">🎡 Вращение</button><button data-sound="correct">✓ Верная буква</button><button data-stop-sound>■ Стоп звук</button></div>
+   <div class="host-buttons"><button id="manualPass" class="secondary">↪ ПЕРЕДАТЬ ХОД</button><button id="undoLetter" class="secondary">↶ Отменить букву</button></div>
+  </aside>
  </div>
- <div class="letters-heading">АЛФАВИТ · БУКВУ НАЗЫВАЕТ ИГРОК</div><div class="letters" id="letters"></div>
- <div class="controls"><button class="secondary" id="reset">↻ Повторить тур</button><button class="hidden" id="next">Следующий тур →</button></div>
+ <div class="hidden-compat" aria-hidden="true"><div class="wheel-stage"><div id="wheelPointer"></div><div id="wheelDisk"><svg id="wheelSvg" viewBox="-255 -255 510 510"></svg></div></div><button id="spinButton" type="button">Вращать</button><div id="guideText"></div><div id="giftShelf"></div></div>
  <div class="sector-modal hidden" id="sectorModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-card"><div class="modal-icon" id="modalIcon">🎁</div><h2 id="modalTitle">СЮРПРИЗ!</h2><p id="modalText"></p><div class="modal-options" id="modalOptions"></div></div></div>
 </section>
 <section class="panel hidden" id="finish"><div class="trophy">🏆</div><div id="victory">ПОЗДРАВЛЯЕМ!</div><h2>Все туры пройдены!</h2><div class="controls"><button id="restart">↻ Играть сначала</button></div></section>
 <section class="panel hidden" id="editor"><h2>⚙ Редактор вопросов</h2><p class="muted">Изменяйте вопросы и ответы для каждого тура. Вопросы и группы сохраняются в Cloudflare D1. На доверенном ноутбуке вход администратора запоминается на 90 дней. Ход игры хранится в браузере.</p><div class="group-settings"><h3>Группы-участники</h3><p class="muted">Названия отображаются на титульном экране. Можно указать номера или названия групп.</p><div class="group-inputs" id="groupInputs"></div></div><p class="muted" id="presetNote">Для загрузки новых вопросов в уже существующую базу нажмите «Вставить 5 вопросов с фотографий», затем «Сохранить». IV тур помечен как временный.</p><div id="editList"></div><div class="group-settings"><h3>Управление игрой</h3><p class="muted">Полный сброс возвращает игру на титульный экран и первый тур, закрывает все буквы. Вопросы, ответы, количество туров и названия групп останутся сохранёнными.</p><div class="controls"><button class="danger" id="fullReset">↻ Полностью сбросить игру</button></div></div><div class="group-settings"><h3>Резервная копия</h3><p class="muted">Скачайте настройки и результаты игры в файл JSON. Его можно загрузить на другом ноутбуке.</p><div class="controls"><button class="secondary" id="exportBackup">↓ Скачать настройки</button><button class="secondary" id="importBackup">↑ Загрузить настройки</button><input type="file" id="backupFile" accept=".json,application/json" hidden></div></div><div class="controls"><button class="secondary" id="logoutAdmin">🔒 Выйти из администратора</button><button class="secondary" id="loadTeacherQuestions">📋 Вставить 5 вопросов с фотографий</button><button class="secondary" id="add">+ Добавить тур</button><button id="save">💾 Сохранить</button><button class="secondary" id="cancel">Отмена</button></div></section>
-</main><footer>Поле чудес · Для техникума</footer></div><script src="/pole-chudes/game.js?v=73"></script></body></html>
+</main><footer>Поле чудес · Для техникума</footer></div><script src="/pole-chudes/game.js?v=75"></script></body></html>
