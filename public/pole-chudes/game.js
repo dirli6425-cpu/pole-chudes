@@ -154,12 +154,16 @@ function show(view){['intro','game','finish','editor'].forEach(id=>$(id).classLi
 function renderGroupsAndScore(){
  const board=$('playerBoard');board.replaceChildren();
  groups.forEach((g,i)=>{
-  const b=document.createElement('button');b.type='button';b.className='player-card'+(i===player?' active':'');b.disabled=complete();
-  b.setAttribute('aria-pressed',String(i===player));
-  const name=document.createElement('span');name.className='player-name';name.textContent=(/^\d+$/.test(g)?'ГРУППА ':'')+g;
-  const score=document.createElement('strong');score.textContent=scores[i].toLocaleString('ru-RU');
-  const suffix=document.createElement('small');suffix.textContent=i===player?'▶ СЕЙЧАС ИГРАЕТ':'НАЖМИТЕ, ЧТОБЫ ВЫБРАТЬ';
-  b.append(name,score,suffix);b.onclick=()=>{if(complete())return;player=i;stage='ready';message('Теперь играет '+groupName(player));render();saveProgress()};board.append(b)
+  const b=document.createElement('button');b.type='button';
+  b.className='player-card'+(i===player?' active':'');
+  b.disabled=complete();b.setAttribute('aria-pressed',String(i===player));
+  const name=document.createElement('span');name.className='player-name';
+  name.textContent=(/^\\d+$/.test(g)?'ГРУППА ':'')+g;
+  const suffix=document.createElement('small');
+  suffix.textContent=i===player?'▶ СЕЙЧАС ИГРАЕТ':'НАЖМИТЕ ДЛЯ ВЫБОРА';
+  b.append(name,suffix);
+  b.onclick=()=>{if(complete())return;player=i;stage='ready';message('Теперь играет '+groupName(player));render();saveProgress()};
+  board.append(b);
  });
  const tray=$('giftShelf');if(tray)tray.hidden=true;
 }
@@ -175,8 +179,9 @@ function render(){
  $('next').classList.toggle('hidden',!complete());$('next').textContent=index===rounds.length-1?'Завершить игру 🏆':'Следующий тур →';
  $('spinButton').disabled=true;$('spinButton').textContent=stage==='spinning'?'⏳ БАРАБАН ВРАЩАЕТСЯ…':stage==='ready'?'🎡 ВРАЩАТЬ БАРАБАН':stage==='roundDone'?'🏆 ТУР ЗАВЕРШЁН':'⏳ СНАЧАЛА ВЫПОЛНИТЕ ЗАДАНИЕ';
  $('manualPass').disabled=stage==='spinning'||stage==='box'||stage==='gift'||complete();$('revealWord').disabled=stage==='spinning'||complete();
- const guide=complete()?'Тур завершён': 'Назовите букву, выберите очки или включите звук вручную';
+ const guide=complete()?'Тур завершён':'Назовите букву или включите нужный звук вручную';
  $('guideText').textContent=guide;
+ if(!complete())setResult('СЕЙЧАС ИГРАЕТ',groupName(player),'plain');
  if(complete()){if(!$('status').textContent.includes('открыто'))message(`🏆 Слово отгадано! Победитель тура: ${groupName(player)}.`,'good')}
  renderGroupsAndScore();
 }
@@ -184,7 +189,7 @@ function setResult(big,small,color){$('resultBig').textContent=big;$('resultSmal
 function clearModal(){$('sectorModal').classList.add('hidden');$('modalOptions').replaceChildren()}
 function modal(icon,title,desc,actions){$('modalIcon').textContent=icon;$('modalTitle').textContent=title;$('modalText').textContent=desc;const opts=$('modalOptions');opts.replaceChildren();actions.forEach(({text,act})=>{const btn=document.createElement('button');btn.type='button';btn.textContent=text;btn.onclick=act;opts.append(btn)});$('sectorModal').classList.remove('hidden')}
 function saveGameAndRender(){render();saveProgress()}
-function nextPlayer(){player=(player+1)%groups.length;stage='ready';currentSector=null;saveGameAndRender()}
+function nextPlayer(){player=(player+1)%groups.length;stage='ready';currentSector=null;setResult('СЕЙЧАС ИГРАЕТ',groupName(player));saveGameAndRender()}
 function spin(){
  if(stage!=='ready'||complete())return;
  clearModal();stage='spinning';const choice=randomIndex(sectors.length);landingIndex=choice;
@@ -223,45 +228,38 @@ function openBox(chosen,correct){const winning=chosen===correct;clearModal();if(
  ]);saveGameAndRender()}
 function guess(c){
  if(guessed.has(c)||complete())return;
- manualHistory.push({c,player,scores:scores.slice(),stage,sector:currentSector?{...currentSector}:null});
- const sec=currentSector,isPlus=stage==='plus',num=[...rounds[index].a].filter(v=>v===c).length;
+ manualHistory.push({c,player});
+ const num=[...rounds[index].a].filter(v=>v===c).length;
  guessed.add(c);
- if(num){const points=isPlus?0:(sec?.points||0)*num;scores[player]+=points;playTvSound('correct');if(complete()){
-  stage='roundDone';message(`🏆 ${groupName(player)} разгадала слово! ${points?'+ '+points.toLocaleString('ru-RU')+' очков.':''}`,'good');setResult('ПОБЕДА!','Слово полностью разгадано','win');
- }else{stage='ready';currentSector=null;message(isPlus?`✚ Буква ${c} открыта бесплатно! ${groupName(player)} крутит снова.`:`✓ ${c} — ${num} шт. +${points.toLocaleString('ru-RU')} очков! Крутите снова.`,'good')}
- }else if(isPlus){stage='ready';currentSector=null;playTvSound('empty');message(`✚ Буквы ${c} нет. Сектор «Плюс» не лишает хода.`,'bad')
- }else{playTvSound('pass');const previous=groupName(player);nextPlayer();message(`✕ Буквы ${c} нет. Ход от ${previous} перешёл к ${groupName(player)}.`,'bad');return}
+ if(num){
+  playTvSound('correct');
+  if(complete()){stage='roundDone';message(`🏆 ${groupName(player)} разгадала слово!`,'good');setResult('ПОБЕДА!','Слово полностью разгадано','win')}
+  else{stage='ready';message(`✓ Буква ${c} открыта! ${groupName(player)} продолжает ход.`,'good')}
+ }else{
+  playTvSound('pass');const previous=groupName(player);nextPlayer();
+  message(`✕ Буквы ${c} нет. Ход от ${previous} перешёл к ${groupName(player)}.`,'bad');return;
+ }
  saveGameAndRender();
 }
-function reset(){if(stage==='spinning')return;manualHistory=[];guessed=new Set();stage='ready';currentSector=null;clearModal();message(`🎡 Тур начат! Ход ${groupName(player)}.`);setResult('ГОТОВЫ?','Вращайте барабан','plain');saveGameAndRender()}
+function reset(){if(stage==='spinning')return;manualHistory=[];guessed=new Set();stage='ready';currentSector=null;clearModal();message(`🎡 Тур начат! Ход ${groupName(player)}.`);setResult('СЕЙЧАС ИГРАЕТ',groupName(player),'plain');saveGameAndRender()}
 function resetGameplayState(alsoIndex=true){manualHistory=[];clearTimeout(spinTimer);stopTvSound();clearModal();$('wheelPointer').classList.remove('clicking');
  if(alsoIndex)index=0;guessed=new Set();stage='ready';player=0;scores=[0,0,0];gifts=[[],[],[]];currentSector=null;wheelRotation=0;landingIndex=null;wordOpenedByHost=false;
- $('wheelDisk').style.transition='none';$('wheelDisk').style.transform='rotate(0deg)';setResult('ГОТОВЫ?','Начните с вращения барабана','plain');message('🎬 Всё готово. Начинаем!');saveGameAndRender()}
+ $('wheelDisk').style.transition='none';$('wheelDisk').style.transform='rotate(0deg)';setResult('СЕЙЧАС ИГРАЕТ',groupName(player),'plain');message('🎬 Всё готово. Начинаем!');saveGameAndRender()}
 function resetAllGame(){resetGameplayState(true);saveProgress()}
 let manualHistory=[];
-function selectManualPoints(points){
- if(complete())return;
- currentSector={kind:'points',points, t:String(points)};stage='letter';
- document.querySelectorAll('[data-points]').forEach(b=>b.classList.toggle('selected',Number(b.dataset.points)===points));
- setResult(points+' ОЧКОВ','За каждую найденную букву','points');
- message('🎯 Выпало '+points+'. Нажмите названную букву.');saveGameAndRender();
-}
-document.querySelectorAll('[data-points]').forEach(b=>b.onclick=()=>selectManualPoints(Number(b.dataset.points)));
 document.querySelectorAll('[data-sound]').forEach(b=>b.onclick=()=>{prepareSound();playTvSound(b.dataset.sound)});
 document.querySelector('[data-stop-sound]').onclick=()=>stopTvSound();
-document.querySelector('[data-sector="plus"]').onclick=()=>{stage='plus';currentSector={kind:'plus',points:0};setResult('СЕКТОР +','Буква открывается без очков');message('✚ Нажмите любую букву справа');prepareSound();playTvSound('plus');saveGameAndRender()};
-document.querySelector('[data-sector="bankrupt"]').onclick=()=>{if(complete())return;scores[player]=0;const from=groupName(player);nextPlayer();setResult('БАНКРОТ','Очки группы обнулены');message('💥 '+from+': банкрот!');prepareSound();playTvSound('pass');saveGameAndRender()};
-$('undoLetter').onclick=()=>{const h=manualHistory.pop();if(!h){message('Пока нечего отменять');return}guessed.delete(h.c);scores=h.scores;player=h.player;stage=h.stage;currentSector=h.sector;message('↶ Буква '+h.c+' отменена');setResult('ОТМЕНЕНО','Можно продолжить игру');saveGameAndRender()};
+$('undoLetter').onclick=()=>{const h=manualHistory.pop();if(!h){message('Пока нечего отменять');return}guessed.delete(h.c);player=h.player;stage='ready';message('↶ Буква '+h.c+' отменена');setResult('СЕЙЧАС ИГРАЕТ',groupName(player));saveGameAndRender()};
 $('spinButton').onclick=()=>{prepareSound();spin()};
 $('start').onclick=()=>{if(!rounds.length)return;prepareSound();show('game')};
-$('reset').onclick=()=>{if(!confirm('Повторить только текущий тур? Буквы закроются, но общий счёт и подарки сохранятся.'))return;reset()};
+$('reset').onclick=()=>{if(!confirm('Повторить тур? Все буквы снова закроются.'))return;reset()};
 $('manualPass').onclick=()=>{if(stage==='spinning'||stage==='box'||stage==='gift'||complete())return;playTvSound('pass');const from=groupName(player);nextPlayer();message('↪ Ведущий передал ход: '+from+' → '+groupName(player),'bad')};
 $('revealWord').onclick=()=>{if(stage==='spinning'||complete()||!confirm('Открыть всё слово вручную и завершить этот тур?'))return;
  for(const ch of rounds[index].a)if(ch!==' ')guessed.add(ch);
  stage='roundDone';currentSector=null;playTvSound('correct');setResult('СЛОВО ОТКРЫТО','Тур завершён ведущим','win');message('🎉 Слово открыто ведущим!','good');saveGameAndRender()};
 $('next').onclick=()=>{if(!complete()||stage==='spinning')return;if(index===rounds.length-1){show('finish');return}index++;reset()};
-$('restart').onclick=()=>{if(!confirm('Начать новую игру с нуля? Очки и подарки обнулятся, вопросы останутся.'))return;resetAllGame();show('game')};
-$('fullReset').onclick=()=>{if(!confirm('Полностью сбросить ход игры, очки, подарки и перейти к первому туру? Вопросы, ответы и группы останутся.'))return;resetAllGame();show('intro');alert('Прогресс игры сброшен. Вопросы сохранены.')};
+$('restart').onclick=()=>{if(!confirm('Начать новую игру? Все буквы закроются, вопросы останутся.'))return;resetAllGame();show('game')};
+$('fullReset').onclick=()=>{if(!confirm('Сбросить игру и перейти к первому туру? Вопросы, ответы и группы останутся.'))return;resetAllGame();show('intro');alert('Прогресс игры сброшен. Вопросы сохранены.')};
 $('fullscreen').onclick=()=>{if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.()};
 
 function editRender(){const root=$('editList');root.replaceChildren();editing.forEach((r,i)=>{const box=document.createElement('div');box.className='edit';const h=document.createElement('h3');h.textContent='Тур '+(i+1);box.append(h);for(const [key,label] of [['q','Вопрос'],['a','Ответ (русскими буквами)']]){const l=document.createElement('label');l.textContent=label;const field=document.createElement(key==='q'?'textarea':'input');field.value=r[key];field.oninput=()=>editing[i][key]=field.value;box.append(l,field)}const del=document.createElement('button');del.className='danger';del.textContent='Удалить тур';del.onclick=()=>{if(editing.length===1){alert('Нужен хотя бы один тур');return}editing.splice(i,1);editRender()};box.append(del);root.append(box)})}$('settings').onclick=()=>{document.body.dataset.previousScreen=document.body.dataset.screen;editing=rounds.map(r=>({...r}));editingGroups=groups.slice();renderGroupInputs();editRender();show('editor')};$('loadTeacherQuestions').onclick=()=>{if(!confirm('Подставить 5 вопросов с фотографий и группы 208, 207, 125? Пока только в редакторе. Для записи в D1 отдельно нажмите «Сохранить».'))return;editing=teacherPreset.rounds.map(r=>({...r}));editingGroups=teacherPreset.groups.slice();renderGroupInputs();editRender();document.getElementById('presetNote').textContent='✓ Пять туров загружены в редактор. IV тур временный. Нажмите «Сохранить» для записи в D1.'};
@@ -274,17 +272,11 @@ async function ensureAdmin(){try{const state=await fetch('/api/auth',{cache:'no-
 $('logoutAdmin').onclick=async()=>{if(!confirm('Выйти из режима администратора на этом устройстве?'))return;await fetch('/api/auth',{method:'DELETE'});alert('Выход выполнен. При следующем сохранении потребуется пароль.')};
 
 const progressKey='pole-chudes-tv-v3';
-function currentGameData(){return {player,scores,gifts,stage,currentSector,wheelRotation}}
-function restoreGameData(g){if(!g||typeof g!=='object')return;
- player=Number.isInteger(g.player)&&g.player>=0&&g.player<3?g.player:0;
- scores=Array.isArray(g.scores)&&g.scores.length===3?g.scores.map(n=>Number.isSafeInteger(n)&&n>=0?Math.min(n,10000000):0):[0,0,0];
- gifts=Array.isArray(g.gifts)&&g.gifts.length===3?g.gifts.map(a=>Array.isArray(a)?a.filter(v=>typeof v==='string').slice(0,100).map(v=>v.slice(0,60)):[]):[[],[],[]];
- stage=['ready','letter','plus','roundDone'].includes(g.stage)?g.stage:'ready';
- currentSector=g.currentSector&&typeof g.currentSector==='object'&&Number.isInteger(g.currentSector.points)?{kind:'points',points:Math.max(0,Math.min(2000,g.currentSector.points))}:null;
- if(stage==='letter'&&!currentSector)stage='ready';
- if(stage==='roundDone'&&!complete())stage='ready';
- wheelRotation=Number.isFinite(g.wheelRotation)?Math.max(0,Math.min(g.wheelRotation,100000000)):0;
- $('wheelDisk').style.transition='none';$('wheelDisk').style.transform=`rotate(${wheelRotation}deg)`;
+function currentGameData(){return {player,stage}}
+function restoreGameData(g){
+ if(!g||typeof g!=='object')return;
+ player=Number.isInteger(g.player)&&g.player>=0&&g.player<groups.length?g.player:0;
+ stage=g.stage==='roundDone'?'roundDone':'ready';currentSector=null;
 }
 function saveProgress(){try{localStorage.setItem(progressKey,JSON.stringify({index,guessed:[...guessed],game:currentGameData(),screen:document.body.dataset.screen||'intro'}))}catch(e){console.warn('Автосохранение недоступно',e)}}
 function restoreProgress(){try{
@@ -295,8 +287,7 @@ function restoreProgress(){try{
  guessed=new Set(Array.isArray(p.guessed)?p.guessed.filter(c=>alphabet.includes(c)):[]);
  restoreGameData(p.game);
  if(complete()){stage='roundDone';setResult('ПОБЕДА!','Слово уже раскрыто','win')}
- else if(stage==='letter')setResult(`${currentSector.points}`,'Назовите букву','points');
- else if(stage==='plus')setResult('ПЛЮС','Откройте букву бесплатно','plus');
+
 }catch(e){console.warn('Не удалось восстановить ход игры',e)}}
 function backupData(){return {format:'pole-chudes-backup',version:3,exportedAt:new Date().toISOString(),groups,rounds,progress:{index,guessed:[...guessed],game:currentGameData()}}}
 
