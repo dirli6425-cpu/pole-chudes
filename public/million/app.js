@@ -1,19 +1,73 @@
 import {LETTERS,ROUND_NAMES,clone,teamOf,roundOf,validateConfig,freshState,restoreState,fingerprint,scores,roundStats,ladderRows,choose,lock,reveal,advance,fifty,audience,cleanSettings} from './core.js';
 import {SoundStudio,CUES} from './audio.js';
+import {apiUrl,apiFetch,externalApi,saveBearerToken,clearBearerToken} from './connection.js';
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const storage={get(k){try{return JSON.parse(localStorage.getItem('million-v9-'+k))}catch{return null}},set(k,v){try{localStorage.setItem('million-v9-'+k,JSON.stringify(v));return true}catch{return false}}};
 let config=null,state=null,settings=cleanSettings(storage.get('settings')||{}),local=false,screen='intro',clock=null,deadline=0,remaining=null,transitionTimer=null,transitioning=false,toastTimer=null,writeQueue=Promise.resolve(),settingsTimer=null;
-let draft=null,editIndex=0,pendingAudio=null,confirmResolve=null,ready=false;
-const audio=new SoundStudio(settings,message=>toast(message));
+let draft=null,editIndex=0,pendingAudio=null,confirmResolve=null,ready=false,unsyncedScenario=!!storage.get('unsynced-scenario'),checkingConnection=false;
+const audio=new SoundStudio(settings,message=>toast(message),{apiUrl,apiFetch,isOnline:()=>local});
 const modalOpen=()=>!!document.querySelector('dialog[open]');
-async function jsonRequest(url,options={}){const r=await fetch(url,{cache:'no-store',...options,signal:AbortSignal.timeout(5000)});let d;try{d=await r.json()}catch{throw Error('Сервер вернул непонятный ответ.')}if(!r.ok)throw Error(d.error||'Не удалось сохранить изменения.');return d}
+async function jsonRequest(url,options={}){
+ const isApi=url.startsWith('/api/');let r;
+ try { r=await (isApi?apiFetch(url,options):fetch(url,{cache:'no-store',...options,signal:AbortSignal.timeout(4000)})); }
+ catch(err){if(isApi&&ready)connectionLost();throw err;}
+ let d;try{d=await r.json()}catch{throw Error('Сервер вернул непонятный ответ.');}
+ if(!r.ok)throw Error(d?.error||'Не удалось сохранить изменения.');
+ return d;
+}
+function connectionLost(){
+ if(!local)return;
+ local=false;
+ banner('Сервер недоступен. Игра продолжает работать, данные сохраняются в браузере.');
+ $('connectionLabel').textContent='АВТОНОМНО · STUDIO 09';
+ // Loaded server audio is no longer reachable: prefer custom tracks stored locally.
+ audio.init(false).then(()=>{if(audio.musicKey){audio.music?.pause();audio.music=null;audio.setMusic(audio.musicKey)}}).catch(()=>{});
+}
+function connectionRestored(){
+ if(local)return;
+ local=true;
+ $('connectionLabel').textContent='LINUX · SQLITE · НА СВЯЗИ';
+ banner(unsyncedScenario?'Сервер снова доступен. Локальные изменения вопросов ещё не отправлены на сервер.':'Соединение с сервером восстановлено. Игра продолжается.');
+ audio.init(true).then(()=>{if(audio.musicKey){audio.music?.pause();audio.music=null;audio.setMusic(audio.musicKey)}}).catch(()=>{});
+}
+async function checkConnection(){
+ if(!ready||checkingConnection||document.hidden)return;
+ checkingConnection=true;
+ try{const cap=await jsonRequest('/api/studio');if(cap.mode==='local')connectionRestored();}
+ catch{if(local)connectionLost();}
+ finally{checkingConnection=false;}
+}
+setInterval(checkConnection,15000);
 function put(url,value){return jsonRequest(url,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(value)})}
 function toast(text){clearTimeout(toastTimer);$('toast').textContent=text;$('toast').hidden=false;if($('toast').showPopover)$('toast').showPopover();toastTimer=setTimeout(()=>{if($('toast').hidePopover)$('toast').hidePopover();$('toast').hidden=true},4800)}
 function banner(text){$('statusBanner').textContent=text;$('statusBanner').hidden=!text}
 function serialWrite(fn){writeQueue=writeQueue.catch(()=>{}).then(fn);return writeQueue}
-function saveState(){if(!config||!state)return;const data={version:9,fingerprint:fingerprint(config),state:clone(state),savedAt:new Date().toISOString()};const browserSaved=storage.set('state',data);$('saveStatus').textContent=browserSaved?'Ход игры сохранён':'Сохранение в браузере недоступно';if(local){$('saveStatus').textContent='Сохраняем…';serialWrite(()=>put('/site3/api/state',data)).then(()=>$('saveStatus').textContent='Сохранено на сервере').catch(()=>{$('saveStatus').textContent='Сохранено только в браузере';toast('Не удалось записать ход игры на сервер. Проверьте авторизацию.')})}renderResume()}
-function saveSettings(){storage.set('settings',settings);clearTimeout(settingsTimer);if(local)settingsTimer=setTimeout(()=>serialWrite(()=>put('/site3/api/settings',clone(settings))).catch(()=>toast('Настройки сохранены только в браузере.')),200);applySettings()}
+function saveState(){
+ if(!config||!state)return;
+ const data={version:9,fingerprint:fingerprint(config),state:clone(state),savedAt:new Date().toISOString()};
+ const browserSaved=storage.set('state',data);
+ $('saveStatus').textContent=browserSaved?'Ход игры сохранён в браузере':'Сохранение в браузере недоступно';
+ // A visitor can run the game without the admin password. The server stores progress
+ // only for an authorized administrator, and only for a matching saved scenario.
+ if(local&&!unsyncedScenario){
+  serialWrite(async()=>{
+   const status=await jsonRequest('/api/auth');
+   if(!status.authenticated)return;
+   await put('/api/state',data);
+   $('saveStatus').textContent='Ход игры сохранён на сервере';
+  }).catch(()=>{$('saveStatus').textContent='Ход игры сохранён в браузере';});
+ }
+ renderResume();
+}
+function saveSettings(){
+ storage.set('settings',settings);clearTimeout(settingsTimer);
+ if(local)settingsTimer=setTimeout(()=>serialWrite(async()=>{
+  const status=await jsonRequest('/api/auth');
+  if(status.authenticated)await put('/api/settings',clone(settings));
+ }).catch(()=>{}),200);
+ applySettings();
+}
 function applySettings(){audio.settings=settings;audio.volumes();document.body.classList.toggle('low-motion',!settings.motion);document.body.classList.toggle('projector',settings.contrast);$('muteButton').classList.toggle('muted',settings.muted);$('muteButton').textContent=settings.muted?'◖×':'◖))';$('muteButton').setAttribute('aria-label',settings.muted?'Включить звук':'Отключить звук');$('muteButton').setAttribute('aria-pressed',String(settings.muted));$('musicButton').classList.toggle('active',audio.musicEnabled&&!settings.muted);if(config){if(screen==='play')renderGame();if(screen==='results')renderResults(false)}}
 function syncSettingsForm(){for(const k of ['musicVolume','effectsVolume']){$(k).value=settings[k];$(k+'Value').textContent=settings[k]+'%'}$('teamOne').value=settings.teamNames[0];$('teamTwo').value=settings.teamNames[1];$('revealDelay').value=settings.revealDelay;$('motionToggle').checked=settings.motion;$('contrastToggle').checked=settings.contrast;renderAudioRows()}
 function renderResume(){$('resumeButton').hidden=!state?.started;$('resumeButton').textContent=state?.completed?'Посмотреть итоги ↗':'Продолжить игру ↗';if(state?.started&&!state.completed)$('introCaption').textContent=`Игра сохранена · вопрос ${state.index+1} из ${config.questions.length}.`}
@@ -31,7 +85,7 @@ function curtain(overline,title){clearTimeout(transitionTimer);transitioning=tru
 function ask(title,text){$('confirmTitle').textContent=title;$('confirmText').textContent=text;openModal('confirmDialog');return new Promise(res=>confirmResolve=res)}
 function resolveAsk(value){const res=confirmResolve;confirmResolve=null;$('confirmDialog').close();res?.(value)}
 $('confirmYes').onclick=()=>resolveAsk(true);$('confirmNo').onclick=()=>resolveAsk(false);$('confirmDialog').addEventListener('cancel',e=>{e.preventDefault();resolveAsk(false)});
-async function startGame(){if(!ready||transitioning)return;audio.enableMusic(true);if(local&&!await auth()){audio.enableMusic(false);return;}if(state.started&&!await ask('Начать новую игру?','Счёт, использованные подсказки и текущий ход будут сброшены. Вопросы и звуки сохранятся.'))return;clearAction();state=freshState(config);state.started=true;audio.enableMusic(true);showScreen('play');renderGame();audio.cue('start');curtain('СТУДИЯ ГОТОВА',config.title);saveState();applySettings()}
+async function startGame(){if(!ready||transitioning)return;audio.enableMusic(true);if(state.started&&!await ask('Начать новую игру?','Счёт, использованные подсказки и текущий ход будут сброшены. Вопросы и звуки сохранятся.'))return;clearAction();state=freshState(config);state.started=true;audio.enableMusic(true);showScreen('play');renderGame();audio.cue('start');curtain('СТУДИЯ ГОТОВА',config.title);saveState();applySettings()}
 function renderGame(){if(!config||!state)return;const q=config.questions[state.index],t=teamOf(q,state.index),r=roundOf(q),s=scores(config,state),u=state.used[t];$('roundNumber').textContent=`РАУНД ${String([...new Set(config.questions.map(roundOf))].indexOf(r)+1).padStart(2,'0')} / ${String(new Set(config.questions.map(roundOf)).size).padStart(2,'0')}`;$('roundName').textContent=config.roundNames[r];$('teams').innerHTML=[0,1].map(n=>`<div class="team-card ${n===t?'active':''}"><div class="team-name">${esc(settings.teamNames[n])}</div><div class="team-sub">${n===t?'СЕЙЧАС ОТВЕЧАЕТ':'ОЖИДАЕТ ХОДА'} &nbsp; <span class="hint-dots"><span class="${state.used[n].fifty?'spent':''}">50:50</span> · <span class="${state.used[n].audience?'spent':''}">ЗАЛ</span></span></div><strong class="team-points">${s[n]}</strong></div>`).join('');$('turnLabel').textContent='ХОД · '+settings.teamNames[t].toUpperCase();$('questionPosition').textContent=`ВОПРОС ${String(state.index+1).padStart(2,'0')} / ${config.questions.length}`;$('question').textContent=q.q;
  $('answers').innerHTML=q.options.map((opt,i)=>{let c='answer';if(state.removed.includes(i))c+=' removed';if(state.selected===i)c+=' selected';if(state.phase==='locked'&&state.selected===i)c+=' locked';if(state.phase==='revealed'){if(i===q.correct)c+=' correct';else if(i===state.selected)c+=' wrong'}return `<button class="${c}" data-answer="${i}" ${state.phase!=='picking'||state.removed.includes(i)?'disabled':''} aria-pressed="${state.selected===i}" aria-label="${LETTERS[i]}: ${esc(state.removed.includes(i)?'Вариант убран':opt)}"><span class="answer-letter">${LETTERS[i]}:</span><span class="answer-text">${esc(opt)}</span></button>`}).join('');
  $('fiftyButton').disabled=u.fifty||state.phase!=='picking';$('audienceButton').disabled=u.audience||state.phase!=='picking';$('fiftyButton').title=u.fifty?'Эта команда уже использовала 50:50':'Убрать два неверных варианта';$('audienceButton').title=u.audience?'Эта команда уже обращалась к залу':'Спросить мнение настоящего зала';$('confirmButton').hidden=state.phase!=='picking';$('confirmButton').disabled=state.selected===null;$('revealButton').hidden=state.phase!=='locked';$('nextButton').hidden=state.phase!=='revealed';$('nextButton').textContent=state.index===config.questions.length-1?'Показать итоги →':'Следующий вопрос →';
@@ -47,7 +101,7 @@ function nextQuestion(){if(transitioning||screen!=='play'||modalOpen())return;co
 function celebrate(n){if(!settings.motion||matchMedia('(prefers-reduced-motion: reduce)').matches)return;const frag=document.createDocumentFragment();for(let i=0;i<n;i++){const el=document.createElement('i');el.style.left=Math.random()*100+'%';el.style.animationDelay=Math.random()*.7+'s';el.style.animationDuration=2.5+Math.random()*2+'s';frag.append(el);setTimeout(()=>el.remove(),5500)}$('confetti').append(frag)}
 function renderResults(effects=true){const s=scores(config,state),winner=s[0]===s[1]?-1:s[0]>s[1]?0:1;$('winnerTitle').textContent=winner<0?'Победила дружба!':settings.teamNames[winner]+' — победители!';$('resultSubtitle').textContent=`${config.questions.length} вопросов позади. Спасибо за красивую игру.`;$('resultCards').innerHTML=[0,1].map(t=>{const total=config.questions.filter((q,i)=>teamOf(q,i)===t).length;return `<div class="result-card ${winner===t||winner<0?'winner':''}"><div>${esc(settings.teamNames[t])}</div><strong>${s[t]}</strong><span>из ${total} ответов · ${total?Math.round(s[t]/total*100):0}% верно</span></div>`}).join('');$('resultTable').innerHTML=`<thead><tr><th>РАУНД</th>${settings.teamNames.map(n=>`<th>${esc(n)}</th>`).join('')}</tr></thead><tbody>`+[...new Set(config.questions.map(roundOf))].map(r=>`<tr><td>${esc(config.roundNames[r])}</td>${[0,1].map(t=>{const st=roundStats(config,state,t,r);return `<td>${st.correct} / ${st.total}</td>`}).join('')}</tr>`).join('')+'</tbody>';if(effects)celebrate(55)}
 $('answers').addEventListener('click',e=>{const b=e.target.closest('[data-answer]');if(b)selectAnswer(Number(b.dataset.answer))});$('answers').addEventListener('pointerover',e=>{const b=e.target.closest('button');if(b&&!b.disabled&&!b.contains(e.relatedTarget))audio.cue('hover')});$('startButton').onclick=startGame;
-$('resumeButton').onclick=async()=>{if(!state?.started)return;audio.enableMusic(true);if(local&&!await auth()){audio.enableMusic(false);return;}showScreen(state.completed?'results':'play');audio.enableMusic(true);if(state.completed)renderResults(false);else{renderGame();if(state.phase==='locked'){$('verdict').textContent='Ответ принят ранее. Нажмите «Показать ответ», когда будете готовы.';remaining=null}}applySettings()};
+$('resumeButton').onclick=async()=>{if(!state?.started)return;audio.enableMusic(true);showScreen(state.completed?'results':'play');audio.enableMusic(true);if(state.completed)renderResults(false);else{renderGame();if(state.phase==='locked'){$('verdict').textContent='Ответ принят ранее. Нажмите «Показать ответ», когда будете готовы.';remaining=null}}applySettings()};
 $('confirmButton').onclick=confirmAnswer;$('revealButton').onclick=revealAnswer;$('nextButton').onclick=nextQuestion;
 $('fiftyButton').onclick=()=>{if(transitioning||!fifty(config,state))return;audio.cue('fifty');renderGame();$('verdict').textContent='50:50 — два неверных варианта убраны.';saveState()};
 $('audienceButton').onclick=()=>{if(transitioning||!audience(config,state))return;renderGame();saveState();$('audienceText').textContent=settings.teamNames[teamOf(config.questions[state.index],state.index)]+', послушайте мнение аудитории.';openModal('audienceDialog');audio.previewCue('audience')};$('audienceDone').onclick=()=>closeModal('audienceDialog');
@@ -56,7 +110,7 @@ function download(name,data,type='application/json'){const blob=data instanceof 
 $('downloadResults').onclick=()=>download('million-results.txt',`${config.title}\n${new Date().toLocaleString('ru-RU')}\n\n${settings.teamNames.map((n,t)=>`${n}: ${scores(config,state)[t]} баллов`).join('\n')}\n\n${config.roundNames.map((n,r)=>`${n}\n${[0,1].map(t=>{const st=roundStats(config,state,t,r);return `${settings.teamNames[t]}: ${st.correct} / ${st.total}`}).join('\n')}`).join('\n\n')}`,'text/plain;charset=utf-8');
 async function toggleFullscreen(){try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch{toast('Браузер не разрешил полный экран. Попробуйте F11.')}}
 $('fullscreenButton').onclick=toggleFullscreen;$('muteButton').onclick=()=>{settings.muted=!settings.muted;if(settings.muted){audio.stopEffects();audio.music?.pause()}else if(audio.musicEnabled)audio.setMusic(audio.musicKey);saveSettings()};$('musicButton').onclick=()=>{if(settings.muted)settings.muted=false;audio.enableMusic(!audio.musicEnabled);saveSettings()};
-$('settingsButton').onclick=async()=>{if(local&&!await auth())return;syncSettingsForm();openModal('settingsDialog')};for(const b of document.querySelectorAll('[data-close]'))b.onclick=()=>b.closest('dialog').id==='editorDialog'?requestCloseEditor():closeModal(b.closest('dialog').id);
+$('settingsButton').onclick=async()=>{syncSettingsForm();openModal('settingsDialog')};for(const b of document.querySelectorAll('[data-close]'))b.onclick=()=>b.closest('dialog').id==='editorDialog'?requestCloseEditor():closeModal(b.closest('dialog').id);
 async function requestCloseEditor(){if(draft&&JSON.stringify(draft)!==JSON.stringify(config)&&!await ask('Закрыть без сохранения?','Изменения в черновике вопросов будут потеряны.'))return;closeModal('editorDialog')}
 $('editorDialog').addEventListener('cancel',e=>{e.preventDefault();requestCloseEditor()});
 for(const d of document.querySelectorAll('dialog'))d.addEventListener('close',()=>{audio.stopPreview();unfreeze()});
@@ -64,10 +118,38 @@ for(const b of document.querySelectorAll('[data-tab]')){b.setAttribute('aria-con
 for(const k of ['musicVolume','effectsVolume'])$(k).oninput=()=>{settings[k]=Number($(k).value);$(k+'Value').textContent=settings[k]+'%';saveSettings()};
 $('teamOne').onchange=()=>{settings.teamNames[0]=$('teamOne').value.trim()||'Команда 01';saveSettings()};$('teamTwo').onchange=()=>{settings.teamNames[1]=$('teamTwo').value.trim()||'Команда 02';saveSettings()};$('revealDelay').onchange=()=>{settings.revealDelay=Number($('revealDelay').value);remaining=null;saveSettings()};$('motionToggle').onchange=()=>{settings.motion=$('motionToggle').checked;saveSettings()};$('contrastToggle').onchange=()=>{settings.contrast=$('contrastToggle').checked;saveSettings()};
 function renderAudioRows(){$('audioCues').innerHTML=Object.entries(CUES).map(([key,title])=>`<div class="audio-row"><button class="preview" data-preview="${key}" aria-label="Прослушать: ${title}">▶</button><div><strong>${title}</strong><small>${esc(audio.custom[key]?.name||'Музыка и эффекты студии')}</small></div><button class="secondary" data-import-audio="${key}">Заменить</button><button class="reset-audio" data-reset-audio="${key}" aria-label="Вернуть стандартный звук: ${title}" ${audio.custom[key]?'':'disabled'}>↺</button></div>`).join('')}
-$('audioCues').onclick=async e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.preview)audio.previewCue(b.dataset.preview);if(b.dataset.importAudio){pendingAudio=b.dataset.importAudio;$('audioFile').click()}if(b.dataset.resetAudio){try{if(local&&!await auth())return;await audio.reset(b.dataset.resetAudio);renderAudioRows();toast('Стандартный звук восстановлен.')}catch(e){toast(e.message)}}};
-$('audioFile').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{if(local&&!await auth())return;await audio.setCustom(pendingAudio,file);renderAudioRows();toast(local?'Звук сохранён на сервере.':'Звук сохранён. Для переноса экспортируйте комплект.')}catch(err){toast(err.message)}finally{e.target.value=''}};
-async function auth(){try{if((await jsonRequest('/site3/api/auth')).authenticated)return true;const password=prompt('Пароль администратора сайта:');if(password===null)return false;await jsonRequest('/site3/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password})});if(!(await jsonRequest('/site3/api/auth')).authenticated)throw Error('Сеанс администратора не сохранился. Откройте сайт через HTTPS.');return true}catch(e){toast('Ошибка входа: '+e.message);return false}}
-async function saveConfig(next){if(!await auth())throw Error('Сохранение отменено.');await put('/site3/api/million',next);storage.set('config',next);config=next;clearAction();state=freshState(config);saveState();renderIntro();showScreen('intro')}
+$('audioCues').onclick=async e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.preview)audio.previewCue(b.dataset.preview);if(b.dataset.importAudio){pendingAudio=b.dataset.importAudio;$('audioFile').click()}if(b.dataset.resetAudio){try{if(local){const granted=await auth();if(!granted&&local)return;}await audio.reset(b.dataset.resetAudio);renderAudioRows();toast('Стандартный звук восстановлен.')}catch(e){toast(e.message)}}};
+$('audioFile').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{if(local){const granted=await auth();if(!granted&&local)return;}await audio.setCustom(pendingAudio,file);renderAudioRows();toast(local?'Звук сохранён на сервере.':'Звук сохранён. Для переноса экспортируйте комплект.')}catch(err){toast(err.message)}finally{e.target.value=''}};
+async function auth(){
+ if(!local)return false;
+ try{
+  if((await jsonRequest('/api/auth')).authenticated)return true;
+  const password=prompt('Пароль администратора для сохранения на Linux-сервере:');
+  if(password===null)return false;
+  const result=await jsonRequest('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password})});
+  if(externalApi&&result.token)saveBearerToken(result.token);
+  if(!(await jsonRequest('/api/auth')).authenticated)throw Error('Сеанс администратора не сохранился.');
+  return true;
+ }catch(e){
+  toast('Ошибка входа: '+e.message);
+  return false;
+ }
+}
+async function saveConfig(next){
+ let savedOnServer=false;
+ if(local){
+  const authorized=await auth();
+  if(authorized){
+   try{await put('/api/million',next);savedOnServer=true;}
+   catch(err){if(local)throw err;} // Network went away: continue saving in browser.
+  }else if(local)throw Error('Сохранение отменено: нужен пароль администратора сервера.');
+ }
+ storage.set('config',next);
+ unsyncedScenario=!savedOnServer;
+ storage.set('unsynced-scenario',unsyncedScenario);
+ config=next;clearAction();state=freshState(config);saveState();renderIntro();showScreen('intro');
+ if(!savedOnServer)banner('Сценарий сохранён в браузере. Сервер недоступен — игру можно проводить автономно.');
+}
 function renderQuestionList(){const term=$('questionSearch').value.toLocaleLowerCase();$('questionList').innerHTML=draft.questions.map((q,i)=>({q,i})).filter(({q})=>q.q.toLocaleLowerCase().includes(term)).map(({q,i})=>`<button class="question-list-item ${i===editIndex?'active':''}" data-edit="${i}"><b>${String(i+1).padStart(2,'0')}</b><span>${esc(q.q||'Новый вопрос')}</span></button>`).join('')}
 function renderQuestionForm(){const q=draft.questions[editIndex];$('questionForm').innerHTML=`<h3>Вопрос ${editIndex+1} <span class="muted">/ ${draft.questions.length}</span></h3><label class="field">Текст вопроса<textarea id="editText" maxlength="500">${esc(q.q)}</textarea></label><div class="form-options">${q.options.map((opt,i)=>`<label class="option-field"><span>Вариант ${LETTERS[i]} · отметьте правильный</span><div class="edit-option"><input type="radio" name="correct" value="${i}" ${q.correct===i?'checked':''} aria-label="Правильный вариант ${LETTERS[i]}"><input data-option="${i}" type="text" maxlength="200" value="${esc(opt)}" aria-label="Вариант ${LETTERS[i]}"></div></label>`).join('')}</div><div class="form-metadata"><label class="field">Отвечает команда<select id="editTeam">${settings.teamNames.map((name,i)=>`<option value="${i}" ${teamOf(q,editIndex)===i?'selected':''}>${esc(name)}</option>`).join('')}</select></label><label class="field">Раунд<select id="editRound">${draft.roundNames.map((name,i)=>`<option value="${i}" ${roundOf(q)===i?'selected':''}>${i+1}. ${esc(name)}</option>`).join('')}</select></label></div><button class="delete-question" id="deleteQuestion" ${draft.questions.length===1?'disabled':''}>Удалить этот вопрос</button>`;
  $('editText').oninput=e=>{q.q=e.target.value;renderQuestionList()};for(const el of document.querySelectorAll('[data-option]'))el.oninput=e=>q.options[Number(el.dataset.option)]=e.target.value;for(const el of document.querySelectorAll('[name=correct]'))el.onchange=()=>q.correct=Number(el.value);$('editTeam').onchange=e=>q.team=Number(e.target.value);$('editRound').onchange=e=>q.round=Number(e.target.value);$('deleteQuestion').onclick=async()=>{if(!await ask('Удалить вопрос?',`Вопрос ${editIndex+1} будет удалён из черновика сценария.`))return;draft.questions.splice(editIndex,1);editIndex=Math.min(editIndex,draft.questions.length-1);renderEditor()}}
@@ -83,5 +165,5 @@ $('importPack').onclick=()=>$('packFile').click();$('packFile').onchange=async e
 const dedicated=new Set(['startButton','confirmButton','revealButton','nextButton','fiftyButton','audienceButton','muteButton','musicButton']);document.addEventListener('click',e=>{const b=e.target.closest('button');if(b&&!b.disabled&&!dedicated.has(b.id)&&!b.hasAttribute('data-answer')&&!b.hasAttribute('data-preview'))audio.cue('click')});
 window.addEventListener('keydown',e=>{if(!ready||e.repeat||e.ctrlKey||e.altKey||e.metaKey||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||e.target.isContentEditable||modalOpen())return;const key=e.key.toLowerCase();if(key==='f'){e.preventDefault();toggleFullscreen();return}if(key==='s'){e.preventDefault();$('muteButton').click();return}if(screen!=='play'||transitioning)return;if(/^[1-4]$/.test(key)){e.preventDefault();selectAnswer(Number(key)-1)}else if(key==='enter'){e.preventDefault();if(state.phase==='picking')confirmAnswer();else if(state.phase==='locked')revealAnswer();else nextQuestion()}else if(key==='r'){e.preventDefault();revealAnswer()}else if(key==='escape'){e.preventDefault();openModal('pauseDialog')}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&screen==='play'&&!modalOpen())openModal('pauseDialog')});
-async function boot(){try{const cap=await jsonRequest('/site3/api/studio').catch(()=>({mode:'cloud'}));local=cap.mode==='local';let fetched;try{fetched=await jsonRequest('/site3/api/million')}catch{fetched=storage.get('config')||await jsonRequest('./scenario-questions.json');banner('Загружен сохранённый сценарий. Соединение с сервером недоступно.')}config=validateConfig(fetched);storage.set('config',config);let checkpoint=storage.get('state');if(local){const [a,b]=await Promise.allSettled([jsonRequest('/site3/api/settings'),jsonRequest('/site3/api/state')]);if(a.status==='fulfilled'&&a.value)settings=cleanSettings(a.value);if(b.status==='fulfilled'&&b.value)checkpoint=b.value}state=checkpoint?.fingerprint===fingerprint(config)?restoreState(config,checkpoint.state):freshState(config);await audio.init(local).catch(e=>toast(e.message));audio.settings=settings;audio.setMusic('intro');applySettings();renderIntro();$('connectionLabel').textContent=cap.hosted?'СЕРВЕР LINUX · SQLITE · STUDIO 09':local?'АВТОНОМНО · ВСЁ НА ЭТОМ КОМПЬЮТЕРЕ':'ВЕБ-ВЕРСИЯ · STUDIO 09';ready=true}catch(e){banner('Не удалось подготовить игру: '+e.message+' Запустите её через START-LINUX.sh или START-WINDOWS.cmd.')}}
+async function boot(){try{const cap=await jsonRequest('/api/studio').catch(()=>({mode:'offline'}));local=cap.mode==='local';let fetched;try{if(!local)throw Error('offline');fetched=await jsonRequest('/api/million');if(unsyncedScenario&&storage.get('config')){fetched=storage.get('config');banner('На этом устройстве есть несинхронизированные изменения вопросов. Они не заменены серверной версией.')}}catch{fetched=storage.get('config')||await jsonRequest('./scenario-questions.json');banner('Сервер недоступен. Используется сценарий из браузера или комплекта — игра работает автономно.')}config=validateConfig(fetched);storage.set('config',config);let checkpoint=storage.get('state');if(local){const [a,b]=await Promise.allSettled([jsonRequest('/api/settings'),jsonRequest('/api/state')]);if(a.status==='fulfilled'&&a.value)settings=cleanSettings(a.value);if(b.status==='fulfilled'&&b.value)checkpoint=b.value}state=checkpoint?.fingerprint===fingerprint(config)?restoreState(config,checkpoint.state):freshState(config);await audio.init(local).catch(e=>toast(e.message));audio.settings=settings;audio.setMusic('intro');applySettings();renderIntro();$('connectionLabel').textContent=local?'LINUX · SQLITE · НА СВЯЗИ':'АВТОНОМНО · STUDIO 09';ready=true}catch(e){banner('Не удалось подготовить игру: '+e.message+' Запустите её через START-LINUX.sh или START-WINDOWS.cmd.')}}
 boot();

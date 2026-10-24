@@ -24,6 +24,9 @@ if (ADMIN_KEY.length < 8) throw new Error('Admin password must contain at least 
 const extraKeyFile = process.env.ADMIN_EXTRA_KEY_FILE || '/var/lib/games-local/admin-extra.key';
 const EXTRA_ADMIN_KEY = existsSync(extraKeyFile) ? readFileSync(extraKeyFile, 'utf8').trim() : '';
 const ADMIN_KEYS = [...new Set([ADMIN_KEY, EXTRA_ADMIN_KEY].filter(Boolean))];
+// Only trusted static frontends can read API responses in a browser.
+const allowedOrigins=new Set((process.env.MILLION_ALLOWED_ORIGINS||'https://dirli6425-cpu.github.io')
+  .split(',').map(v=>v.trim()).filter(Boolean));
 const publicRoot = fileURLToPath(new URL('../public/', import.meta.url));
 const publicResolved = resolve(publicRoot);
 const audioDir = process.env.MILLION_AUDIO_DIR || '/var/lib/games-local/million-audio';
@@ -91,7 +94,7 @@ const setStore=async (name,value) => DB.prepare(
   'INSERT INTO million_store (key,payload,updated_at) VALUES (?,?,CURRENT_TIMESTAMP) ON CONFLICT(key) DO UPDATE SET payload=excluded.payload,updated_at=CURRENT_TIMESTAMP'
 ).bind(name,JSON.stringify(value)).run();
 const authStatus=async request => {
-  const r=await millionWorker.fetch(new Request('http://localhost/api/auth',{method:'GET',headers:{cookie:request.headers.get('cookie')||''}}),env);
+  const r=await millionWorker.fetch(new Request('http://localhost/api/auth',{method:'GET',headers:{cookie:request.headers.get('cookie')||'',authorization:request.headers.get('authorization')||''}}),env);
   return r.ok && Boolean((await r.json()).authenticated);
 };
 async function receive(req,limit) {
@@ -178,7 +181,14 @@ async function dispatch(req,res) {
     const url=new URL(req.url,origin);
     prefix=url.pathname==='/site2'||url.pathname.startsWith('/site2/')?'/site2':
       url.pathname==='/site3'||url.pathname.startsWith('/site3/')?'/site3':null;
-    if (url.pathname==='/healthz') response=json({ok:true,mode:'copy',site3:'v9'});
+    // Browser CORS preflight for a trusted GitHub Pages site. Never touch /site2.
+    const isSite3Api=prefix==='/site3'&&url.pathname.startsWith('/site3/api/');
+    const requestOrigin=String(req.headers.origin||'');
+    const allowedOrigin=isSite3Api&&allowedOrigins.has(requestOrigin)?requestOrigin:null;
+    if(isSite3Api&&req.method==='OPTIONS') response=allowedOrigin
+      ?new Response(null,{status:204,headers:{'cache-control':'no-store'}})
+      :error(403,'Этот сайт не разрешён для подключения к API');
+    else if (url.pathname==='/healthz') response=json({ok:true,mode:'copy',site3:'v9'});
     else if (!prefix) response=error(404,'Не найдено');
     else if (url.pathname===prefix) response=new Response(null,{status:302,headers:{location:prefix+'/'}});
     else {
@@ -204,13 +214,26 @@ async function dispatch(req,res) {
     if(prefix && outgoing.has('set-cookie')) {
       outgoing.set('set-cookie',outgoing.get('set-cookie').replace(/Path=\/([;]|$)/i,`Path=${prefix}/$1`));
     }
+    if(allowedOrigin){
+      outgoing.set('access-control-allow-origin',allowedOrigin);
+      outgoing.set('vary','Origin');
+      outgoing.set('access-control-allow-methods','GET,HEAD,POST,PUT,DELETE,OPTIONS');
+      outgoing.set('access-control-allow-headers','Authorization, Content-Type, X-Audio-Name');
+      outgoing.set('access-control-max-age','600');
+    }
     for(const [key,value] of outgoing)res.setHeader(key,value);
     res.statusCode=response.status;
     res.end(req.method==='HEAD'?undefined:Buffer.from(await response.arrayBuffer()));
   } catch(ex) {
     console.error('games-local:',ex);
     const status=ex.httpStatus||500;
-    if(!res.headersSent){res.statusCode=status;res.setHeader('content-type','application/json; charset=utf-8');res.setHeader('cache-control','no-store');}
+    if(!res.headersSent){
+      res.statusCode=status;res.setHeader('content-type','application/json; charset=utf-8');res.setHeader('cache-control','no-store');
+      const origin=String(req.headers.origin||'');
+      if(req.url.startsWith('/site3/api/')&&allowedOrigins.has(origin)){
+        res.setHeader('Access-Control-Allow-Origin',origin);res.setHeader('Vary','Origin');
+      }
+    }
     res.end(JSON.stringify({error:status===500?'Ошибка сервера игр; проверьте journalctl':ex.message}));
   }
 }

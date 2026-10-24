@@ -12,8 +12,9 @@ async function authorized(request,env){
  if(!keys.some(Boolean))return false;
  try{
   const cookie=(request.headers.get('cookie')||'').split(';').map(x=>x.trim()).find(x=>x.startsWith(COOKIE+'='));
-  if(!cookie)return false;
-  const token=cookie.slice(COOKIE.length+1);
+  const bearer=/^Bearer (\S+)$/.exec(request.headers.get('authorization')||'');
+  const token=bearer?.[1]||cookie?.slice(COOKIE.length+1);
+  if(!token)return false;
   const [payload,sig]=token.split('.');
   if(!payload||!sig)return false;
   let valid=false;
@@ -38,7 +39,7 @@ if(url.pathname==='/api/auth'){
   try {
    const payload=b64(enc.encode(JSON.stringify({exp:Date.now()+MAX_AGE*1000})));
    const token=payload+'.'+await mac(loginKey,payload);
-   const response=json({ok:true});
+   const response=json({ok:true,token});
    response.headers.set('Set-Cookie',COOKIE+'='+token+'; Max-Age='+MAX_AGE+cookieOpts);
    return response;
   } catch (error) {
