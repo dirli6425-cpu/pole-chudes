@@ -1,0 +1,90 @@
+/* Million for Group — broadcast title sequence (v8.1). Standalone, offline-friendly CSS. */
+.intro-tv{width:100%;max-width:none;min-height:calc(100svh - 132px);padding:20px 14px 26px;border:1px solid #a77a3c88;border-radius:16px;box-shadow:inset 0 0 0 1px #ffe8b51e,0 22px 70px #0009;overflow:hidden;isolation:isolate;background:radial-gradient(ellipse 65% 54% at 50% 29%,#1d3e93 0%,#0d1c57 39%,#06103c 72%,#02071d 100%);}
+.intro-tv::before{content:"";position:absolute;z-index:-1;inset:0;background:repeating-linear-gradient(90deg,transparent 0 90px,#739cff0a 91px 93px,transparent 94px 182px),radial-gradient(circle at 50% 32%,#7ea2ff13 0 15%,transparent 62%);pointer-events:none}
+.intro-tv::after{content:"";position:absolute;inset:0;z-index:-1;box-shadow:inset 0 0 115px #010312,inset 0 -25px 70px #020617;pointer-events:none}
+.intro-tv .tv-backdrop{position:absolute;z-index:0;inset:0;pointer-events:none;overflow:hidden}
+.tv-halo{position:absolute;left:50%;top:31%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);pointer-events:none}
+.tv-halo-one{width:min(82vw,780px);border:2px solid #5a94dc38;box-shadow:0 0 0 8px #0b185a41,0 0 0 14px #8dbaff10,0 0 90px #4386e940,inset 0 0 90px #3157cf37;animation:tvRotateRing 90s linear infinite}
+.tv-halo-one:before,.tv-halo-one:after{content:"";position:absolute;inset:5%;border:2px dashed #aec0ff50;border-radius:50%}
+.tv-halo-one:after{inset:12%;border-style:solid;border-color:#f6ba5a33}
+.tv-halo-two{width:min(102vw,1030px);border:2px dotted #e8bd6d54;box-shadow:inset 0 0 55px #f6ba5a08;animation:tvRotateRingReverse 80s linear infinite}
+.tv-halo-three{width:min(122vw,1190px);border:1px solid #94b6ff14;box-shadow:0 0 40px #263cc637}
+.tv-light{position:absolute;width:70%;height:115%;top:-36%;opacity:.65;filter:blur(9px);mix-blend-mode:screen;transform-origin:top center;background:conic-gradient(from 160deg at 50% 0%,transparent 0deg,#90b8ff24 7deg,#fff0b833 15deg,transparent 34deg 360deg)}
+.tv-light-left{left:-18%;transform:rotate(18deg);animation:tvBeamLeft 12s ease-in-out infinite alternate}.tv-light-right{right:-18%;transform:scaleX(-1) rotate(18deg);animation:tvBeamRight 14s ease-in-out infinite alternate}
+.tv-floor{position:absolute;left:-30%;width:160%;bottom:-18%;height:50%;border-radius:50% 50% 0 0;background:repeating-radial-gradient(ellipse at 50% 100%,transparent 0 23px,#6285d615 24px 26px,transparent 29px 62px),radial-gradient(ellipse at 50% 70%,#324fd94d,transparent 65%);transform:perspective(650px) rotateX(58deg)}
+.tv-dots{position:absolute;inset:0;background-image:radial-gradient(circle,#e7c98c 0 1px,transparent 1.6px),radial-gradient(circle,#a6c8ff 0 1px,transparent 1.6px);background-size:91px 113px,139px 89px;background-position:14px 31px,55px 71px;opacity:.42;animation:tvDotShift 21s linear infinite}
+.tv-twinkle{position:absolute;background:#f5deaf;transform:rotate(45deg);width:9px;height:9px;box-shadow:0 0 18px #fff7e5,0 0 44px #ffe5ab;animation:tvStar 4s ease-in-out infinite alternate}
+.tv-twinkle.tw1{left:19%;top:21%}.tv-twinkle.tw2{left:82%;top:38%;animation-delay:1.3s}.tv-twinkle.tw3{left:73%;top:13%;animation-delay:2.5s;width:5px;height:5px}
+.tv-content{z-index:1;position:relative;display:flex;align-items:center;justify-content:center;flex-direction:column;width:100%;max-width:1050px;margin:auto}
+.tv-broadcast{display:flex;gap:12px;align-items:center;justify-content:center;color:#c1d6ff;font-size:clamp(8px,1.05vw,12px);font-weight:800;letter-spacing:3px;white-space:nowrap;opacity:.86;margin:2px 0 clamp(9px,1.6vh,19px)}
+.tv-pulse{display:inline-block;flex:0 0 7px;width:7px;height:7px;border-radius:50%;background:#ffb650;box-shadow:0 0 0 4px #f5a54528,0 0 17px #ffc562;animation:tvPulse 1.55s ease infinite}
+.tv-broadcast-line{display:inline-block;height:1px;width:20px;background:linear-gradient(90deg,#ebc785,#6b97e6)}
+.tv-crest{position:relative;display:grid;place-items:center;width:clamp(130px,18vw,205px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#142c7b 0 24%,#070c32 43%,#eac687 44% 46%,#131d5b 47% 53%,#d3a465 54% 56%,#102053 58% 65%,#d9b578 66% 68%,transparent 69%);box-shadow:0 0 0 2px #b89a6a,0 0 42px #92b5ff70,0 0 120px #396ced80,inset 0 0 26px #172e8c;animation:tvCrestBreathe 4.7s ease-in-out infinite alternate}
+.tv-crest:after{content:"";position:absolute;inset:-5%;border-radius:50%;border:1px solid #f9e1b55e;box-shadow:0 0 0 6px #e9c77b08,0 0 0 13px #e9c77b0a}
+.tv-crest-ring{position:absolute;border-radius:50%;pointer-events:none}
+.tv-crest-ring.r1{inset:7%;border:1px dashed #f9da9c8c;animation:tvRotateRing 19s linear infinite}
+.tv-crest-ring.r2{inset:15%;border:2px solid #d3a16592;animation:tvRotateRingReverse 22s linear infinite}
+.tv-crest-ring.r3{inset:-12%;border:3px dotted #bfd8ff44;animation:tvRotateRing 32s linear infinite}
+.tv-crest-mono{font-family:Georgia,'Times New Roman',serif;font-weight:900;color:#ffe6b1;text-shadow:0 2px 1px #684319,0 5px 0 #46351b,0 0 21px #f9a949;z-index:1;font-size:clamp(65px,10vw,110px);line-height:1}
+.tv-crest-star{position:absolute;color:#ffedbd;text-shadow:0 0 19px #f4db9c}.tv-crest-star.s1{top:13%;left:14%}.tv-crest-star.s2{bottom:16%;right:13%;font-size:12px}
+.tv-kicker{font-size:clamp(10px,1.05vw,13px);letter-spacing:clamp(2px,.37vw,4.5px);font-weight:900;color:#e9c789;margin-top:clamp(12px,2vh,26px);text-shadow:0 0 16px #ebae5455}
+.intro-tv h1{font-size:clamp(36px,5.1vw,74px);letter-spacing:-1.7px;line-height:1.04;margin:8px 0 4px;max-width:100%;overflow-wrap:anywhere;color:#fff9ec;text-shadow:0 2px 0 #8c7135,0 5px 7px #010319,0 0 42px #719aff87;text-transform:uppercase}
+.tv-title-rule{display:flex;align-items:center;gap:16px;color:#efc57b;justify-content:center;width:min(90%,490px);margin:4px 0 8px}.tv-title-rule span{height:1px;background:linear-gradient(90deg,transparent,#d9b378,transparent);flex:1}.tv-title-rule i{font-style:normal;font-size:16px}
+.tv-tagline{color:#ebdfcf;letter-spacing:2.4px;font-weight:900;font-size:clamp(10px,1.18vw,14px)}.tv-tagline span{color:#e3b16b;margin:0 7px}
+.tv-rounds{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px;margin:clamp(12px,1.8vh,21px) 0 6px}
+.tv-rounds span{border:1px solid #6892d269;background:#142960a1;border-radius:24px;color:#cdddfd;font-size:clamp(8px,.85vw,11px);padding:7px 12px;font-weight:800;letter-spacing:1px;box-shadow:inset 0 0 12px #4e83de36}
+.tv-showdown{display:flex;align-items:center;justify-content:center;gap:clamp(9px,1.7vw,22px);font-size:clamp(10px,1.07vw,13px);font-weight:900;letter-spacing:1.2px;color:#e9d9c4;margin-top:clamp(10px,1.5vh,21px)}
+.tv-showdown>span{background:linear-gradient(100deg,#172b71dd,#0b1d53dd);border:1px solid #a2b8e35e;padding:8px 15px;border-radius:5px}.tv-showdown strong{font-size:clamp(14px,1.7vw,20px);color:#f9d591}.tv-showdown b{color:#e3b972;font-family:Georgia,serif;font-size:20px;font-style:italic}
+.tv-actions{display:flex;gap:13px;margin-top:clamp(14px,2.4vh,28px);align-items:stretch;justify-content:center;width:min(100%,730px)}
+.tv-actions>button{border-radius:6px;min-height:58px;margin:0;padding:13px 18px;line-height:1.22;max-width:none;font-size:clamp(12px,1.2vw,16px);white-space:normal}
+.intro-tv .tv-start-btn{min-width:245px;flex:1.1;border:1px solid #fff1c5;box-shadow:0 5px 0 #52310e,0 0 35px #ffb75b65;font-weight:900;letter-spacing:2px;display:flex;justify-content:space-between;align-items:center;gap:15px}
+.intro-tv .tv-start-btn span{font-size:25px;font-weight:400}
+.tv-audio-btn{min-width:210px;flex:1;background:linear-gradient(100deg,#152667,#213e8e,#152566);border:1px solid #9bc0ee!important;color:#f4e8d5;font-weight:900;letter-spacing:1px;display:flex;align-items:center;justify-content:center;gap:12px;box-shadow:inset 0 0 22px #578ada3b,0 4px 0 #080e30}
+.tv-audio-btn:hover{filter:brightness(1.2)}.tv-audio-btn[aria-pressed=true]{border-color:#eed091!important;background:linear-gradient(110deg,#153570,#344c97,#153570)}
+.tv-equalizer{display:flex;gap:3px;align-items:end;height:17px}.tv-equalizer i{display:block;width:3px;height:5px;background:#f9d48d;animation:tvEq .6s ease-in-out infinite alternate;animation-play-state:paused}
+.tv-equalizer i:nth-child(2){animation-duration:.75s;height:11px}.tv-equalizer i:nth-child(3){animation-duration:.44s;height:8px}.tv-equalizer i:nth-child(4){animation-duration:.8s;height:14px}.tv-equalizer i:nth-child(5){animation-duration:.53s;height:6px}
+.tv-music-on .tv-equalizer i{animation-play-state:running}
+.tv-music-custom{display:flex;justify-content:center;align-items:center;gap:clamp(13px,2vw,27px);flex-wrap:wrap;margin-top:clamp(13px,1.6vh,21px);color:#b4c3e3;font-size:11px}
+.tv-file-button{background:transparent;border:0;border-bottom:1px dashed #acb8d6;color:#c5d7f4;padding:5px 0;font-size:11px;font-weight:700}.tv-file-button:hover{color:#fff2ca}
+.tv-music-custom label{display:flex;gap:10px;align-items:center;white-space:nowrap;font-weight:600}
+.tv-music-custom input[type=range]{accent-color:#f6cb7e;width:95px;height:22px;cursor:pointer}
+.tv-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.tv-music-status{font-size:clamp(10px,.9vw,11px);color:#91add3;margin-top:8px;min-height:18px;max-width:min(97%,670px);overflow-wrap:anywhere}
+.tv-intro-edge{position:absolute;z-index:1;bottom:11px;color:#7d93bc;font-size:10px;letter-spacing:4px;font-weight:800;opacity:.63}
+.tv-transition{position:fixed;inset:0;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 50%,#172f7d 0%,#050b30 57%,#00020b 100%);z-index:1000;text-align:center;animation:tvCurtainIn .3s ease-out both;overflow:hidden}.tv-transition.tv-out{animation:tvCurtainOut .58s ease-in both}
+.tv-transition:before{content:"";position:absolute;width:min(95vw,750px);aspect-ratio:1;border-radius:50%;border:7px double #ddb76775;box-shadow:0 0 80px #9dc6ff65,inset 0 0 100px #628dec46;animation:tvRotateRing 7s linear infinite}
+.tv-transition-center{position:relative;z-index:1}.tv-transition-symbol{font-size:36px;color:#f7d8aa;margin-bottom:10px}.tv-transition-kicker{color:#ecc985;letter-spacing:6px;font-weight:900}.tv-transition-title{font-size:clamp(34px,7vw,94px);color:#fff4db;font-weight:900;text-shadow:0 0 44px #bad7fa;margin:14px 0}
+.tv-transition-bar{height:5px;border-radius:9px;background:#3d5689;margin:auto;width:min(300px,62vw);overflow:hidden}.tv-transition-bar span{display:block;height:100%;width:100%;background:#ffdf9b;transform-origin:left;animation:tvProgress 1.4s linear both}
+@keyframes tvCrestBreathe{to{filter:brightness(1.2);box-shadow:0 0 0 2px #dabc8f,0 0 64px #92b5ffc0,0 0 150px #396ceda0,inset 0 0 34px #3855c6}}
+@keyframes tvRotateRing{to{rotate:360deg}}@keyframes tvRotateRingReverse{to{rotate:-360deg}}
+@keyframes tvPulse{50%{box-shadow:0 0 0 9px #f5a54500,0 0 26px #ffc562}}
+@keyframes tvBeamLeft{to{transform:rotate(-5deg);opacity:.9}}@keyframes tvBeamRight{to{transform:scaleX(-1) rotate(-7deg);opacity:.9}}
+@keyframes tvStar{to{opacity:.15;transform:rotate(45deg) scale(.45)}}@keyframes tvDotShift{to{background-position:108px 31px,100px 71px}}
+@keyframes tvEq{to{height:16px}}@keyframes tvCurtainIn{from{opacity:0;scale:1.12}to{opacity:1;scale:1}}@keyframes tvCurtainOut{to{opacity:0;scale:1.12}}@keyframes tvProgress{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+/* Standard projector layouts including 1366×768 and 1920×1080 */
+@media(min-width:761px) and (max-height:850px){.intro-tv{padding-top:11px;padding-bottom:20px;min-height:calc(100svh - 100px)}.tv-broadcast{margin:0 0 4px}.tv-crest{width:clamp(105px,13vh,170px)}.tv-crest-mono{font-size:clamp(60px,9vh,90px)}.tv-kicker{margin-top:10px}.intro-tv h1{font-size:clamp(32px,4.4vw,62px);margin:5px 0}.tv-title-rule{margin:1px 0 5px}.tv-rounds{margin:9px 0 0}.tv-showdown{margin-top:7px}.tv-actions{margin-top:11px}.tv-actions>button{min-height:51px}.tv-music-custom{margin-top:11px}}
+@media(max-width:760px){.intro-tv{min-height:calc(100svh - 190px);border-radius:9px;padding:15px 10px 22px}.tv-halo{top:24%}.tv-halo-one{width:120vw}.tv-halo-two{width:165vw}.tv-crest{width:clamp(112px,31vw,155px)}.tv-crest-mono{font-size:clamp(59px,18vw,80px)}.tv-broadcast{letter-spacing:1.5px;font-size:9px;gap:6px;margin:4px 0 11px}.tv-broadcast-line{width:10px}.tv-kicker{font-size:10px;margin-top:16px}.intro-tv h1{font-size:clamp(32px,9vw,58px);line-height:1.07;letter-spacing:-.6px;margin:10px 0 3px}.tv-tagline{font-size:9px;letter-spacing:.9px;line-height:1.6}.tv-tagline span{margin:0 3px}.tv-rounds{gap:5px;margin:14px 0 0}.tv-rounds span{font-size:8px;padding:6px 7px;letter-spacing:.2px}.tv-showdown{margin-top:14px;font-size:9px;gap:7px}.tv-showdown>span{padding:6px 9px}.tv-showdown strong{font-size:13px}.tv-actions{flex-direction:column;width:min(100%,370px);gap:10px;margin-top:18px}.tv-actions>button{min-height:50px;padding:11px 15px}.intro-tv .tv-start-btn{min-width:0;font-size:16px}.tv-audio-btn{min-width:0}.tv-music-custom{margin-top:17px;gap:12px}.tv-music-status{font-size:10px}.tv-intro-edge{bottom:7px;font-size:8px;letter-spacing:1.5px}}
+@media(max-width:390px){.tv-crest{width:105px}.tv-kicker{margin-top:10px}.intro-tv h1{font-size:31px}.tv-tagline{font-size:8px}.tv-rounds span{font-size:7px}.tv-showdown{margin-top:10px}.tv-actions{margin-top:13px}.tv-music-custom{margin-top:10px}}
+@media(max-width:760px) and (orientation:landscape){.intro-tv{min-height:0}.tv-crest{width:105px}}
+@media(prefers-reduced-motion:reduce){.intro-tv *, .intro-tv *:before, .intro-tv *:after,.tv-transition *{animation-duration:.001s!important}}
+/* The title and broadcast screen fit on normal 16:9 classroom projectors. */
+main:has(#intro:not(.hidden)){padding-top:12px;padding-bottom:0}
+@media(min-width:761px) and (max-height:900px){
+ main:has(#play:not(.hidden)){padding:10px 15px 0}
+ .stage{height:calc(100svh - 90px);min-height:0;grid-template-columns:minmax(0,1fr) minmax(200px,275px);gap:12px}
+ .play-box{padding:11px 18px 10px;justify-content:center}
+ .stage-spot{min-height:62px;flex-direction:row;align-items:center;gap:17px;margin:0 auto 7px}
+ .stage-spot .studio-emblem{width:63px;margin:0}
+ .stage-spot .emblem-core{font-size:27px}
+ .stage-spot .eyebrow{font-size:10px;letter-spacing:1.25px;max-width:680px;text-align:left}
+ .question{min-height:88px;margin:6px 0 14px;font-size:clamp(17px,2.1vw,26px);padding:12px 31px}
+ .answer{min-height:57px;padding:8px 18px;font-size:clamp(12px,1.2vw,17px)}
+ .answers{gap:8px}
+ .team-scores{margin:7px 0}
+ .notice{min-height:30px;margin:6px 0 2px}
+ .tools{margin-top:6px;gap:6px}
+ .hint{min-height:39px;padding:8px 10px}
+ .ladder-box{padding:12px 10px}
+ .ladder-title{margin-bottom:9px}
+ .ladder li{min-height:29px;padding:4px 9px}
+}

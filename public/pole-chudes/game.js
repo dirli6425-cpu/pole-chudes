@@ -32,6 +32,7 @@ const sectors=[
  {t:'800',kind:'points',points:800,color:'#2b6374'},
  {t:'100',kind:'points',points:100,color:'#874244'}
 ];
+let guestTotal=20,guestWinners=[],guestOverlayDismissed=false,guestRolling=false,guestInterval=null;
 let player=0,scores=[0,0,0],gifts=[[],[],[]],stage='ready',currentSector=null,landingIndex=null,wheelRotation=0,spinTimer=0,wordOpenedByHost=false;
 let sfxMuted=false,sfxCurrent=null,audioCtx=null,audioSource=null,audioBuffers={},audioPreparing=false;
 function prepareSound(){
@@ -150,7 +151,7 @@ wheelSvg();
 // The splash screen uses the very same generated studio wheel, not a CSS mockup.
 const introWheelSvg=$('introWheelSvg');
 if(introWheelSvg)introWheelSvg.innerHTML=$('wheelSvg').innerHTML;
-function show(view){['intro','game','finish','editor'].forEach(id=>$(id).classList.toggle('hidden',id!==view));document.body.dataset.screen=view;if(view==='game')render();if(view!=='editor')saveProgress()}
+function show(view){['intro','game','finish','editor'].forEach(id=>$(id).classList.toggle('hidden',id!==view));document.body.dataset.screen=view;if(view==='game'){render();if(index===3&&!guestOverlayDismissed)openGuestDraw()}else $('guestOverlay').classList.add('hidden');if(view!=='editor')saveProgress()}
 function renderGroupsAndScore(){
  const board=$('playerBoard');board.replaceChildren();
  groups.forEach((g,i)=>{
@@ -158,7 +159,7 @@ function renderGroupsAndScore(){
   b.className='player-card'+(i===player?' active':'');
   b.disabled=complete();b.setAttribute('aria-pressed',String(i===player));
   const name=document.createElement('span');name.className='player-name';
-  name.textContent=(/^\\d+$/.test(g)?'ГРУППА ':'')+g;
+  name.textContent=index===3&&guestWinners.length===3?'ГОСТЬ № '+guestWinners[i]:((/^\d+$/.test(g)?'ГРУППА ':'')+g);
   const suffix=document.createElement('small');
   suffix.textContent=i===player?'▶ СЕЙЧАС ИГРАЕТ':'НАЖМИТЕ ДЛЯ ВЫБОРА';
   b.append(name,suffix);
@@ -167,10 +168,11 @@ function renderGroupsAndScore(){
  });
  const tray=$('giftShelf');if(tray)tray.hidden=true;
 }
-function groupName(i){const g=groups[i]||String(i+1);return /^\d+$/.test(g)?'группа '+g:g}
+function groupName(i){if(index===3&&guestWinners.length===3)return 'гость № '+guestWinners[i];const g=groups[i]||String(i+1);return /^\d+$/.test(g)?'группа '+g:g}
 function message(s,type=''){const el=$('status');el.textContent=s;el.className='status '+type}
 function render(){
  const r=rounds[index];if(!r)return;
+ $('guestPickerOpen').hidden=index!==3;
  $('counter').textContent=`ТУР ${index+1} / ${rounds.length}`;$('roundCount').textContent=rounds.length;
  $('question').textContent=r.q;
  $('tiles').replaceChildren();for(const c of r.a){const d=document.createElement('div');d.className='tile'+(c===' '?' space':guessed.has(c)?' open':'');d.textContent=c===' '?'':guessed.has(c)?c:'';$('tiles').append(d)}
@@ -243,7 +245,7 @@ function guess(c){
 }
 function reset(){if(stage==='spinning')return;manualHistory=[];guessed=new Set();stage='ready';currentSector=null;clearModal();message(`🎡 Тур начат! Ход ${groupName(player)}.`);setResult('СЕЙЧАС ИГРАЕТ',groupName(player),'plain');saveGameAndRender()}
 function resetGameplayState(alsoIndex=true){manualHistory=[];clearTimeout(spinTimer);stopTvSound();clearModal();$('wheelPointer').classList.remove('clicking');
- if(alsoIndex)index=0;guessed=new Set();stage='ready';player=0;scores=[0,0,0];gifts=[[],[],[]];currentSector=null;wheelRotation=0;landingIndex=null;wordOpenedByHost=false;
+ if(alsoIndex){index=0;guestWinners=[];guestOverlayDismissed=false}guessed=new Set();stage='ready';player=0;scores=[0,0,0];gifts=[[],[],[]];currentSector=null;wheelRotation=0;landingIndex=null;wordOpenedByHost=false;
  $('wheelDisk').style.transition='none';$('wheelDisk').style.transform='rotate(0deg)';setResult('СЕЙЧАС ИГРАЕТ',groupName(player),'plain');message('🎬 Всё готово. Начинаем!');saveGameAndRender()}
 function resetAllGame(){resetGameplayState(true);saveProgress()}
 let manualHistory=[];
@@ -257,7 +259,7 @@ $('manualPass').onclick=()=>{if(stage==='spinning'||stage==='box'||stage==='gift
 $('revealWord').onclick=()=>{if(stage==='spinning'||complete()||!confirm('Открыть всё слово вручную и завершить этот тур?'))return;
  for(const ch of rounds[index].a)if(ch!==' ')guessed.add(ch);
  stage='roundDone';currentSector=null;playTvSound('correct');setResult('СЛОВО ОТКРЫТО','Тур завершён ведущим','win');message('🎉 Слово открыто ведущим!','good');saveGameAndRender()};
-$('next').onclick=()=>{if(!complete()||stage==='spinning')return;if(index===rounds.length-1){show('finish');return}index++;reset()};
+$('next').onclick=()=>{if(!complete()||stage==='spinning')return;if(index===rounds.length-1){show('finish');return}index++;reset();if(index===3){guestOverlayDismissed=false;openGuestDraw()}};
 $('restart').onclick=()=>{if(!confirm('Начать новую игру? Все буквы закроются, вопросы останутся.'))return;resetAllGame();show('game')};
 $('fullReset').onclick=()=>{if(!confirm('Сбросить игру и перейти к первому туру? Вопросы, ответы и группы останутся.'))return;resetAllGame();show('intro');alert('Прогресс игры сброшен. Вопросы сохранены.')};
 $('fullscreen').onclick=()=>{if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.()};
@@ -272,11 +274,12 @@ async function ensureAdmin(){try{const state=await fetch('/api/auth',{cache:'no-
 $('logoutAdmin').onclick=async()=>{if(!confirm('Выйти из режима администратора на этом устройстве?'))return;await fetch('/api/auth',{method:'DELETE'});alert('Выход выполнен. При следующем сохранении потребуется пароль.')};
 
 const progressKey='pole-chudes-tv-v3';
-function currentGameData(){return {player,stage}}
+function currentGameData(){return {player,stage,guestTotal,guestWinners,guestOverlayDismissed}}
 function restoreGameData(g){
  if(!g||typeof g!=='object')return;
  player=Number.isInteger(g.player)&&g.player>=0&&g.player<groups.length?g.player:0;
  stage=g.stage==='roundDone'?'roundDone':'ready';currentSector=null;
+ guestTotal=Number.isInteger(g.guestTotal)&&g.guestTotal>=3&&g.guestTotal<=200?g.guestTotal:20;guestWinners=Array.isArray(g.guestWinners)?g.guestWinners.filter(n=>Number.isInteger(n)&&n>=1&&n<=guestTotal).slice(0,3):[];guestOverlayDismissed=Boolean(g.guestOverlayDismissed);
 }
 function saveProgress(){try{localStorage.setItem(progressKey,JSON.stringify({index,guessed:[...guessed],game:currentGameData(),screen:document.body.dataset.screen||'intro'}))}catch(e){console.warn('Автосохранение недоступно',e)}}
 function restoreProgress(){try{
@@ -295,4 +298,43 @@ $('exportBackup').onclick=()=>{const blob=new Blob([JSON.stringify(backupData(),
 $('importBackup').onclick=()=>$('backupFile').click();
 $('backupFile').onchange=async e=>{const file=e.target.files?.[0];if(!file)return;try{if(file.size>1000000)throw Error('Файл слишком большой');const b=JSON.parse(await file.text());if(b.format!=='pole-chudes-backup'||!Array.isArray(b.groups)||b.groups.length!==3||!b.groups.every(x=>typeof x==='string'&&x.trim())||!Array.isArray(b.rounds)||!b.rounds.length||b.rounds.length>100||!b.rounds.every(r=>typeof r.q==='string'&&r.q.trim()&&typeof r.a==='string'&&clean(r.a)))throw Error('Неверный формат резервной копии');if(!confirm('Заменить текущие вопросы, группы и ход игры данными из файла?'))return;groups=b.groups.map(x=>x.trim().slice(0,40));rounds=b.rounds.map(r=>({q:r.q.trim(),a:clean(r.a)}));index=Math.max(0,Math.min(rounds.length-1,Number.isInteger(b.progress?.index)?b.progress.index:0));guessed=new Set(Array.isArray(b.progress?.guessed)?b.progress.guessed.filter(c=>alphabet.includes(c)):[]);if(!await ensureAdmin())throw Error('Авторизация отменена');const resp=await fetch('/api/config',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify({groups,rounds})});const result=await resp.json();if(!resp.ok)throw Error(result.error||'Ошибка D1');resetGameplayState(false);index=Math.max(0,Math.min(rounds.length-1,Number.isInteger(b.progress?.index)?b.progress.index:0));guessed=new Set(Array.isArray(b.progress?.guessed)?b.progress.guessed.filter(c=>alphabet.includes(c)):[]);if(b.progress?.game){restoreGameData(b.progress.game)}saveProgress();renderGroups();render();show('intro');alert('Настройки восстановлены в Cloudflare D1!')}catch(err){alert('Не удалось импортировать: '+err.message)}finally{e.target.value=''}};
 
+// Жеребьёвка IV тура: криптостойкая равномерная выборка, без повторов.
+function renderGuestPicker(){
+ $('guestCount').value=guestTotal;$('guestChosen').replaceChildren();
+ guestWinners.forEach((n,i)=>{const x=document.createElement('span');x.textContent=`${i+1}-й участник: № ${n}`;$('guestChosen').append(x)});
+ if(!guestRolling)$('guestNumber').textContent=guestWinners.length?guestWinners[guestWinners.length-1]:'?';
+ $('guestDraw').disabled=guestRolling||guestWinners.length>=3;
+ $('guestDraw').textContent=guestWinners.length===3?'✓ ТРОЕ ВЫБРАНЫ':`🎡 ВЫБРАТЬ НОМЕР (${guestWinners.length+1}/3)`;
+ $('guestProceed').disabled=guestRolling||guestWinners.length!==3;
+ $('guestApply').disabled=guestRolling;$('guestCount').disabled=guestRolling;
+ $('guestRestart').disabled=guestRolling;
+ $('guestHint').textContent=guestWinners.length===3?'Все три номера выбраны. Пригласите участников и откройте вопрос.':'Номера выбираются случайно, каждый не более одного раза.';
+}
+function openGuestDraw(){if(index!==3)return;$('guestOverlay').classList.remove('hidden');renderGuestPicker()}
+function closeGuestDraw(){if(guestWinners.length!==3||guestRolling)return;guestOverlayDismissed=true;$('guestOverlay').classList.add('hidden');player=0;message('IV тур: гости № '+guestWinners.join(', '));saveGameAndRender()}
+$('guestPickerOpen').onclick=openGuestDraw;
+$('guestApply').onclick=()=>{
+ const n=Number($('guestCount').value);
+ if(!Number.isInteger(n)||n<3||n>200){alert('Укажите количество билетов от 3 до 200.');return}
+ if(guestWinners.length&&n!==guestTotal&&!confirm('Количество билетов изменено. Сбросить уже выбранные номера?'))return;
+ if(n!==guestTotal)guestWinners=[];guestTotal=n;renderGuestPicker();saveProgress()
+};
+$('guestRestart').onclick=()=>{if(guestWinners.length&&!confirm('Очистить три номера и провести жеребьёвку заново?'))return;guestWinners=[];guestOverlayDismissed=false;renderGuestPicker();saveProgress()};
+$('guestProceed').onclick=closeGuestDraw;
+$('guestDraw').onclick=()=>{
+ if(guestRolling||guestWinners.length>=3)return;
+ let n=Number($('guestCount').value);
+ if(n!==guestTotal){alert('Нажмите «Применить», чтобы сохранить количество билетов.');return}
+ const remaining=[];for(let k=1;k<=guestTotal;k++)if(!guestWinners.includes(k))remaining.push(k);
+ const winner=remaining[randomIndex(remaining.length)];guestRolling=true;renderGuestPicker();
+ $('guestDrum').classList.add('rolling');$('guestHint').textContent='Барабан выбирает номер…';
+ prepareSound();playTvSound('spin');if(sfxCurrent)sfxCurrent.volume=.28;
+ const started=performance.now(),duration=3300;
+ const tick=()=>{
+  const t=performance.now()-started;
+  if(t>=duration){clearTimeout(guestInterval);guestRolling=false;$('guestDrum').classList.remove('rolling');stopTvSound();guestWinners.push(winner);playLandingChime();renderGuestPicker();saveProgress();return}
+  $('guestNumber').textContent=1+randomIndex(guestTotal);
+  const interval=Math.min(360,55+280*Math.pow(t/duration,2));clearTimeout(guestInterval);guestInterval=setTimeout(tick,interval)
+ };tick();
+};
 async function loadFromDatabase(){try{const response=await fetch('/api/config',{cache:'no-store'});const data=await response.json();if(!response.ok)throw Error(data.error||'Ошибка загрузки');if(!Array.isArray(data.groups)||!Array.isArray(data.rounds)||!data.rounds.length)throw Error('Некорректные данные');groups=data.groups;rounds=data.rounds;renderGroups();$('roundCount').textContent=rounds.length;restoreProgress();render();show('intro')}catch(e){document.getElementById('dbError').textContent='⚠ Нет подключения к базе D1: '+e.message+' — показываются демонстрационные вопросы.';renderGroups();$('roundCount').textContent=rounds.length;restoreProgress();render();show('intro')}}loadFromDatabase();

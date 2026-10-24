@@ -152,7 +152,7 @@ body[data-screen="game"] footer{display:none}
 <body><div class="wrap"><header><div><div class="tag">ИНТЕЛЛЕКТУАЛЬНАЯ ИГРА · 3 ГРУППЫ</div><h1>✦ ПОЛЕ ЧУДЕС</h1></div><div class="header-actions"><button class="secondary" id="fullscreen">⛶ На весь экран</button><button class="secondary" id="settings">⚙ Настройки</button></div></header><div id="dbError" role="alert" style="text-align:center;color:#ffb3a7;background:#481c23;padding:7px;font-weight:700"></div><main>
 <section class="hero" id="intro"><div class="hero-wheel" aria-hidden="true"><svg id="introWheelSvg" viewBox="-255 -255 510 510" focusable="false"></svg></div><div class="hero-top">ИНТЕЛЛЕКТУАЛЬНАЯ ИГРА ДЛЯ ТРЁХ ГРУПП</div><h2>ПОЛЕ<br>ЧУДЕС</h2><div class="group-heading">УЧАСТНИКИ ИГРЫ</div><div class="hero-groups" id="heroGroups"></div><button class="start" id="start">НАЧАТЬ ИГРУ ▶</button><div class="hero-stats"><span>🏆 <b id="roundCount">5</b> туров</span><span>♟ <b>3</b> группы</span><span>✦ Интеллектуальная игра</span></div></section>
 <section class="panel game-stage hidden" id="game">
- <div class="show-head"><span class="on-air"><i></i> ПОЛЕ ЧУДЕС · ТЕХНИКУМ</span><strong id="counter">ТУР 1</strong><button class="secondary sound-toggle" id="tvMute" type="button">🔊 ЗВУК</button></div>
+ <div class="show-head"><span class="on-air"><i></i> ПОЛЕ ЧУДЕС · ТЕХНИКУМ</span><strong id="counter">ТУР 1</strong><button class="secondary" id="guestPickerOpen" type="button" hidden>🎟 Гости: жеребьёвка</button><button class="secondary sound-toggle" id="tvMute" type="button">🔊 ЗВУК</button></div>
  <div class="physical-layout">
   <div class="stage-left">
    <div class="question" id="question"></div>
@@ -169,9 +169,21 @@ body[data-screen="game"] footer{display:none}
    <div class="host-buttons"><button id="manualPass" class="secondary">↪ ПЕРЕДАТЬ ХОД</button><button id="undoLetter" class="secondary">↶ Отменить букву</button></div>
   </aside>
  </div>
+ <div id="guestOverlay" class="guest-overlay hidden" role="dialog" aria-modal="true" aria-label="Жеребьёвка гостей">
+  <div class="guest-frame">
+   <div class="guest-eyebrow">ПОЛЕ ЧУДЕС · ТУР IV</div>
+   <h2>ИГРА СО ЗРИТЕЛЯМИ</h2>
+   <p class="guest-explain">Выбираем трёх участников случайно, без повторов. Номер на бумажном билете совпадает с номером на экране.</p>
+   <div class="guest-setting"><label for="guestCount">Билетов с номерами от 1 до</label><input id="guestCount" type="number" min="3" max="200" value="20" inputmode="numeric"/><button class="secondary" id="guestApply">Применить</button></div>
+   <div class="guest-drum-wrap"><div id="guestDrum" class="guest-drum"><div class="guest-drum-center" id="guestNumber">?</div><div class="guest-drum-label">СЛУЧАЙНЫЙ НОМЕР</div></div></div>
+   <div class="guest-chosen" id="guestChosen" aria-live="polite"></div>
+   <div class="guest-actions"><button id="guestDraw">🎡 ВЫБРАТЬ НОМЕР</button><button class="secondary" id="guestProceed">Перейти к вопросу →</button><button class="secondary" id="guestRestart">↻ Повторить жеребьёвку</button></div>
+   <div class="guest-hint" id="guestHint">Подготовьте пронумерованные билеты и нажмите «Выбрать номер».</div>
+  </div>
+ </div>
  <div class="hidden-compat" aria-hidden="true"><div class="wheel-stage"><div id="wheelPointer"></div><div id="wheelDisk"><svg id="wheelSvg" viewBox="-255 -255 510 510"></svg></div></div><button id="spinButton" type="button">Вращать</button><div id="guideText"></div><div id="giftShelf"></div></div>
  <div class="sector-modal hidden" id="sectorModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-card"><div class="modal-icon" id="modalIcon">🎁</div><h2 id="modalTitle">СЮРПРИЗ!</h2><p id="modalText"></p><div class="modal-options" id="modalOptions"></div></div></div>
 </section>
 <section class="panel hidden" id="finish"><div class="trophy">🏆</div><div id="victory">ПОЗДРАВЛЯЕМ!</div><h2>Все туры пройдены!</h2><div class="controls"><button id="restart">↻ Играть сначала</button></div></section>
 <section class="panel hidden" id="editor"><h2>⚙ Редактор вопросов</h2><p class="muted">Изменяйте вопросы и ответы для каждого тура. Вопросы и группы сохраняются в Cloudflare D1. На доверенном ноутбуке вход администратора запоминается на 90 дней. Текущий ход хранится в браузере.</p><div class="group-settings"><h3>Группы-участники</h3><p class="muted">Названия отображаются на титульном экране. Можно указать номера или названия групп.</p><div class="group-inputs" id="groupInputs"></div></div><p class="muted" id="presetNote">Для загрузки новых вопросов в уже существующую базу нажмите «Вставить 5 вопросов с фотографий», затем «Сохранить». IV тур помечен как временный.</p><div id="editList"></div><div class="group-settings"><h3>Управление игрой</h3><p class="muted">Полный сброс возвращает игру на титульный экран и первый тур, закрывает все буквы. Вопросы, ответы, количество туров и названия групп останутся сохранёнными.</p><div class="controls"><button class="danger" id="fullReset">↻ Полностью сбросить игру</button></div></div><div class="group-settings"><h3>Резервная копия</h3><p class="muted">Скачайте настройки и результаты игры в файл JSON. Его можно загрузить на другом ноутбуке.</p><div class="controls"><button class="secondary" id="exportBackup">↓ Скачать настройки</button><button class="secondary" id="importBackup">↑ Загрузить настройки</button><input type="file" id="backupFile" accept=".json,application/json" hidden></div></div><div class="controls"><button class="secondary" id="logoutAdmin">🔒 Выйти из администратора</button><button class="secondary" id="loadTeacherQuestions">📋 Вставить 5 вопросов с фотографий</button><button class="secondary" id="add">+ Добавить тур</button><button id="save">💾 Сохранить</button><button class="secondary" id="cancel">Отмена</button></div></section>
-</main><footer>Поле чудес · Для техникума</footer></div><script src="/pole-chudes/game.js?v=76"></script></body></html>
+</main><footer>Поле чудес · Для техникума</footer></div><script src="/pole-chudes/game.js?v=77"></script></body></html>

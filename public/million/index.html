@@ -80,14 +80,46 @@ main{position:relative;z-index:2;width:min(100%,1560px);margin:auto;padding:clam
 }
 @media(max-width:360px){nav{grid-template-columns:repeat(2,minmax(0,1fr))}.ladder{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px) and (orientation:landscape){.intro{min-height:450px}.stage-spot{min-height:55px}.stage-spot .studio-emblem{width:65px}}
-</style></head><body>
+.team-scores{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:10px 0;font-size:clamp(12px,1.2vw,17px);font-weight:800}.team-score{background:#0e1b4c;border:1px solid #8874ac;padding:8px 18px;border-radius:8px}.team-score.active{background:#66501d;color:#fff5cd;border-color:#ffe5a2;box-shadow:0 0 20px #ebbb6675}.editor .notice-note{color:#ffe7b6}@media(max-width:700px){.team-score{padding:7px 10px}}
+</style><link rel="stylesheet" href="/million/intro-tv.css?v=81"></head><body>
 <header><strong>✦ МИЛЛИОН ДЛЯ ГРУППЫ</strong><nav><a class="small" href="/">← Игры</a><button class="small" id="editButton">⚙ Вопросы</button><button class="small" id="soundButton">🔊 Звук вкл.</button><button class="small" id="fullButton">⛶ Экран</button></nav></header><div id="error"></div>
 <main>
-<section id="intro" class="intro"><div class="studio-emblem"><div class="emblem-core">М</div></div><div class="eyebrow">Интеллектуальное шоу</div><h1 id="introTitle">Миллион для группы</h1><p>15 вопросов · 4 варианта ответа · 3 подсказки. Кто дойдёт до миллиона?</p><button class="gold" id="startButton">▶ НАЧАТЬ ИГРУ</button></section>
-<section id="play" class="stage hidden"><div class="box play-box"><div class="stage-spot"><div class="studio-emblem"><div class="emblem-core">М</div></div><div class="eyebrow" id="roundText">ВОПРОС 1</div></div><div class="question" id="question"></div><div class="answers" id="answers"></div><div class="notice" id="notice" aria-live="polite"></div><div class="tools"><button class="hint" id="fifty">◑ 50 / 50</button><button class="hint" id="audience">♟ Помощь зала</button><button class="hint" id="swap">⇄ Замена вопроса</button><button class="gold hidden" id="next">Следующий вопрос →</button><button class="hint" id="restart">↻ Заново</button></div></div><aside class="box ladder-box"><div class="eyebrow ladder-title">✦ ПРИЗОВАЯ ЛЕСТНИЦА ✦</div><ol class="ladder" id="ladder"></ol></aside></section>
-<section id="editor" class="box editor hidden"><h2>⚙ Редактор игры</h2><label>Название игры <input id="gameTitle" maxlength="100"></label><div id="questionList"></div><div class="tools"><button class="hint" id="add">+ Добавить вопрос</button><button class="gold" id="save">💾 Сохранить в D1</button><button class="hint" id="cancel">← Вернуться</button></div><p style="color:#bdc9e1;font-size:13px">Авторизация общая с «Полем чудес» и запоминается на 90 дней.</p></section>
-</main><script>
-'use strict';const $=id=>document.getElementById(id);let config={title:'Миллион для группы',questions:[]},index=0,finished=false,used={fifty:false,audience:false,swap:false},removed=[],locked=false;const money=['100','200','300','500','1 000','2 000','4 000','8 000','16 000','32 000','64 000','125 000','250 000','500 000','1 000 000'];const letters=['А','Б','В','Г'];function show(id){for(const n of ['intro','play','editor'])$(n).classList.toggle('hidden',n!==id)}function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}async function load(){try{const r=await fetch('/api/million',{cache:'no-store'});const d=await r.json();if(!r.ok)throw Error(d.error||'Ошибка сервера');config=d;$('introTitle').textContent=config.title;render()}catch(e){$('error').textContent='⚠ '+e.message+' — проверьте миграцию D1'}}function render(){const q=config.questions[index];if(!q)return;$('roundText').textContent='ВОПРОС '+(index+1)+' / '+config.questions.length+' · '+money[Math.min(index,14)]+' ОЧКОВ';$('question').textContent=q.q;$('answers').innerHTML='';q.options.forEach((answer,i)=>{const b=document.createElement('button');b.className='answer';b.innerHTML='<span class="answer-letter">'+letters[i]+':</span><span class="answer-copy"></span>';b.querySelector('.answer-copy').textContent=answer;b.disabled=locked||removed.includes(i);b.onclick=()=>choose(i);$('answers').append(b)});$('ladder').innerHTML='';for(let i=Math.min(15,config.questions.length)-1;i>=0;i--){const li=document.createElement('li');if(i===index)li.className='active';li.innerHTML='<span class="ladder-num">'+String(i+1).padStart(2,'0')+'</span><span>'+money[Math.min(i,14)]+'</span>';if([4,9,14].includes(i))li.classList.add('milestone');$('ladder').append(li)}$('fifty').disabled=used.fifty||locked;$('audience').disabled=used.audience||locked;$('swap').disabled=used.swap||locked||index>=config.questions.length-1;$('next').classList.toggle('hidden',!finished)}function updateHints(){ $('fifty').disabled=used.fifty||locked; $('audience').disabled=used.audience||locked; $('swap').disabled=used.swap||locked||index>=config.questions.length-1; }
+<section id="intro" class="intro intro-tv" aria-label="Титульная заставка игры">
+ <div class="tv-backdrop" aria-hidden="true">
+  <div class="tv-light tv-light-left"></div><div class="tv-light tv-light-right"></div>
+  <div class="tv-halo tv-halo-one"></div><div class="tv-halo tv-halo-two"></div><div class="tv-halo tv-halo-three"></div>
+  <div class="tv-dots"></div><div class="tv-floor"></div>
+  <div class="tv-twinkle tw1"></div><div class="tv-twinkle tw2"></div><div class="tv-twinkle tw3"></div>
+ </div>
+ <div class="tv-content">
+  <div class="tv-broadcast"><span class="tv-pulse"></span> ИНТЕЛЛЕКТУАЛЬНАЯ ИГРА <span class="tv-broadcast-line"></span> 2026</div>
+  <div class="tv-crest" aria-hidden="true">
+   <div class="tv-crest-ring r1"></div><div class="tv-crest-ring r2"></div><div class="tv-crest-ring r3"></div>
+   <div class="tv-crest-mono">М</div><div class="tv-crest-star s1">✦</div><div class="tv-crest-star s2">✦</div>
+  </div>
+  <div class="tv-kicker">ПРЕМЬЕРА · ИГРОВАЯ СТУДИЯ</div>
+  <h1 id="introTitle">Миллион для группы</h1>
+  <div class="tv-title-rule"><span></span><i>✦</i><span></span></div>
+  <div class="tv-tagline">ЧЕТЫРЕ РАУНДА <span>•</span> ДВЕ КОМАНДЫ <span>•</span> ОДИН МИЛЛИОН</div>
+  <div class="tv-rounds"><span>РУССКИЙ ЯЗЫК</span><span>УКРАИНСКИЙ ЯЗЫК</span><span>ЛИТЕРАТУРА</span><span>ПРОФЕССИЯ</span></div>
+  <div class="tv-showdown" aria-label="Две команды соревнуются друг с другом"><span>КОМАНДА <strong>01</strong></span><b>VS</b><span>КОМАНДА <strong>02</strong></span></div>
+  <div class="tv-actions">
+   <button class="tv-audio-btn" type="button" id="introMusicButton" aria-pressed="false"><span class="tv-equalizer" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><span id="introMusicLabel">▶ ВКЛЮЧИТЬ МУЗЫКУ</span></button>
+   <button class="gold tv-start-btn" type="button" id="startButton">НАЧАТЬ ИГРУ <span aria-hidden="true">↗</span></button>
+  </div>
+  <div class="tv-music-custom">
+   <button type="button" id="customMusicButton" class="tv-file-button">♫ Загрузить свою музыку (MP3)</button>
+   <input id="introMusicFile" type="file" accept="audio/*,.mp3,.wav,.ogg,.m4a" class="tv-sr-only" aria-label="Выбрать свою музыку для заставки">
+   <label for="introMusicVolume">Громкость <input id="introMusicVolume" type="range" min="0" max="100" value="55" aria-label="Громкость музыки заставки"></label>
+  </div>
+  <div class="tv-music-status" id="introMusicStatus" aria-live="polite">Музыка запускается нажатием — так требуют браузеры.</div>
+ </div>
+ <div class="tv-intro-edge" aria-hidden="true">✦ · МИЛЛИОН ДЛЯ ГРУППЫ · ✦</div>
+</section>
+<section id="play" class="stage hidden"><div class="box play-box"><div class="stage-spot"><div class="studio-emblem"><div class="emblem-core">М</div></div><div class="eyebrow" id="roundText">ВОПРОС 1</div></div><div class="question" id="question"></div><div class="answers" id="answers"></div><div class="team-scores" id="teamScores" aria-live="polite"></div><div class="notice" id="notice" aria-live="polite"></div><div class="tools"><button class="hint" id="fifty">◑ 50 / 50</button><button class="hint" id="audience">♟ Помощь зала</button><button class="hint" id="swap">☎ Звонок другу</button><button class="gold hidden" id="next">Следующий вопрос →</button><button class="hint" id="restart">↻ Заново</button></div></div><aside class="box ladder-box"><div class="eyebrow ladder-title">✦ ЛЕСТНИЦА РАУНДА ✦</div><ol class="ladder" id="ladder"></ol></aside></section>
+<section id="editor" class="box editor hidden"><h2>⚙ Редактор игры</h2><label>Название игры <input id="gameTitle" maxlength="100"></label><div id="questionList"></div><div class="tools"><button class="hint" id="importScenario">📥 Вписать все 90 вопросов из сценария</button><button class="hint" id="add">+ Добавить вопрос</button><button class="gold" id="save">💾 Сохранить в D1</button><button class="hint" id="cancel">← Вернуться</button></div><p style="color:#bdc9e1;font-size:13px">Ключи правильных ответов предварительно определены по содержанию: проверьте их с преподавателями перед мероприятием. В сценарии у двух вопросов отсутствует четвёртый вариант. Авторизация общая с «Полем чудес» и запоминается на 90 дней.</p></section>
+</main><div id="tvTransition" class="tv-transition hidden" aria-live="polite"><div class="tv-transition-center"><div class="tv-transition-symbol">✦</div><div class="tv-transition-kicker">ВЫ В ЭФИРЕ</div><div class="tv-transition-title">ИГРА НАЧИНАЕТСЯ</div><div class="tv-transition-bar"><span></span></div></div></div><script>
+'use strict';const $=id=>document.getElementById(id);let config={title:'Миллион для группы',questions:[]},index=0,finished=false,score=[0,0],history=[],used={fifty:false,audience:false,swap:false},removed=[],locked=false;const money=['100','200','300','500','1 000','2 000','4 000','8 000','16 000','32 000','64 000','125 000','250 000','500 000','1 000 000'];const letters=['А','Б','В','Г'];function show(id){for(const n of ['intro','play','editor'])$(n).classList.toggle('hidden',n!==id);if(id!=='intro')pauseIntroMusic()}function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}async function load(){try{const r=await fetch('/api/million',{cache:'no-store'});const d=await r.json();if(!r.ok)throw Error(d.error||'Ошибка сервера');config=d;$('introTitle').textContent=config.title;render()}catch(e){$('error').textContent='⚠ '+e.message+' — проверьте миграцию D1'}}function paintTeamScores(team){$('teamScores').innerHTML=[0,1].map(t=>'<div class="team-score '+(t===team?'active':'')+'">'+(t===team?'▶ ':'')+'КОМАНДА № '+(t+1)+' · '+score[t]+' балл.</div>').join('')}function render(){const q=config.questions[index];if(!q)return;const rn=['Знатоки русского языка','Украинский язык — мелодия слова','Литературный калейдоскоп','Профессиональный эрудит'];const round=(Number.isInteger(q.round)?q.round:0);const team=Number.isInteger(q.team)?q.team:index%2;$('roundText').textContent='РАУНД '+(round+1)+' · '+rn[round]+' · ВОПРОС '+(index+1)+'/'+config.questions.length+' · КОМАНДА № '+(team+1);paintTeamScores(team);$('question').textContent=q.q;$('answers').innerHTML='';q.options.forEach((answer,i)=>{const b=document.createElement('button');b.className='answer';b.innerHTML='<span class="answer-letter">'+letters[i]+':</span><span class="answer-copy"></span>';b.querySelector('.answer-copy').textContent=answer;b.disabled=locked||removed.includes(i);b.onclick=()=>choose(i);$('answers').append(b)});const roundQs=config.questions.filter(item=>(Number.isInteger(item.round)?item.round:0)===round);const withinRound=config.questions.slice(0,index+1).filter(item=>(Number.isInteger(item.round)?item.round:0)===round).length-1;const ladderStep=Math.min(14,Math.floor(withinRound*15/Math.max(1,roundQs.length)));$('ladder').innerHTML='';for(let i=14;i>=0;i--){const li=document.createElement('li');if(i===ladderStep)li.className='active';li.innerHTML='<span class="ladder-num">'+String(i+1).padStart(2,'0')+'</span><span>'+money[Math.min(i,14)]+'</span>';if([4,9,14].includes(i))li.classList.add('milestone');$('ladder').append(li)}$('fifty').disabled=used.fifty||locked;$('audience').disabled=used.audience||locked;$('swap').disabled=used.swap||locked;$('next').classList.toggle('hidden',!finished)}function updateHints(){ $('fifty').disabled=used.fifty||locked; $('audience').disabled=used.audience||locked; $('swap').disabled=used.swap||locked; }
 function choose(i){
  if(locked)return;locked=true;finished=false;updateHints();
  const q=config.questions[index],buttons=[...$('answers').children];
@@ -99,13 +131,22 @@ function choose(i){
   stopSuspense();
   buttons.forEach((b,j)=>{if(j===q.correct)b.classList.add('correct');if(j===i&&i!==q.correct)b.classList.add('wrong')});
   const right=i===q.correct;
-  $('notice').textContent=right?'✦ ВЕРНО! '+money[Math.min(index,14)]+' очков!':'✕ НЕВЕРНО! Правильный ответ: '+letters[q.correct];
+  if(right)score[Number.isInteger(q.team)?q.team:index%2]++;history[index]=right;paintTeamScores(Number.isInteger(q.team)?q.team:index%2);$('notice').textContent=right?'✦ ВЕРНО! Команда получает 1 балл.':'✕ НЕВЕРНО! Правильный ответ: '+letters[q.correct];
   sound(right?'correct':'wrong');finished=true;
-  $('next').textContent=right?(index+1<config.questions.length?'Следующий вопрос →':'Завершить игру'):'Завершить игру';
-  $('next').classList.remove('hidden');$('next').dataset.lost=right?'0':'1';
+  $('next').textContent=index+1<config.questions.length?'Следующий вопрос →':'Показать итоги';
+  $('next').classList.remove('hidden');$('next').dataset.lost='0';
  },5500);
 }
-$('startButton').onclick=()=>{stopSuspense();sound('start');$('next').dataset.lost='0';if(!config.questions.length){alert('Сначала добавьте вопросы в настройках');return}index=0;used={fifty:false,audience:false,swap:false};removed=[];locked=false;finished=false;$('notice').textContent='';render();show('play')};$('next').onclick=()=>{stopSuspense();if($('next').dataset.lost==='1'){show('intro');$('introTitle').textContent='Игра окончена';$('next').dataset.lost='0';return}if(index+1>=config.questions.length){show('intro');$('introTitle').textContent='Игра завершена!';return}index++;locked=false;finished=false;removed=[];$('notice').textContent='';render()};$('restart').onclick=()=>{if(confirm('Начать игру заново?'))$('startButton').click()};$('fifty').onclick=()=>{if(locked||used.fifty)return;sound('click');used.fifty=true;const q=config.questions[index];removed=[0,1,2,3].filter(i=>i!==q.correct).sort(()=>Math.random()-.5).slice(0,2);render()};$('audience').onclick=()=>{if(locked||used.audience)return;sound('click');used.audience=true;const q=config.questions[index];const guess=Math.floor(65+Math.random()*25);$('notice').textContent='📊 Мнение зала (демо): '+letters[q.correct]+' — '+guess+'% голосов';render()};$('swap').onclick=()=>{if(locked||used.swap||index>=config.questions.length-1)return;sound('click');used.swap=true;index++;removed=[];locked=false;finished=false;$('notice').textContent='Вопрос заменён';render()};$('fullButton').onclick=()=>{if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.()};function editRow(q,i){const el=document.createElement('div');el.className='edititem';el.innerHTML='<strong>Вопрос '+(i+1)+'</strong><label>Текст вопроса<input class="q" maxlength="500" value="'+escapeHtml(q.q)+'"></label><div class="options">'+q.options.map((a,j)=>'<label>Вариант '+letters[j]+'<input class="opt" maxlength="200" value="'+escapeHtml(a)+'"></label>').join('')+'</div><label>Правильный вариант <select class="correct">'+letters.map((l,j)=>'<option value="'+j+'" '+(j===q.correct?'selected':'')+'>'+l+'</option>').join('')+'</select></label><button class="hint delete">Удалить вопрос</button>';el.querySelector('.delete').onclick=()=>{el.remove();renumber()};return el}function renumber(){[...$('questionList').children].forEach((el,i)=>el.querySelector('strong').textContent='Вопрос '+(i+1))}function openEditor(){$('gameTitle').value=config.title;$('questionList').innerHTML='';config.questions.forEach((q,i)=>$('questionList').append(editRow(q,i)));show('editor')}$('editButton').onclick=openEditor;$('cancel').onclick=()=>show('intro');$('add').onclick=()=>{if($('questionList').children.length>=50)return alert('Максимум 50 вопросов');$('questionList').append(editRow({q:'',options:['','','',''],correct:0},$('questionList').children.length))};async function auth(){const r=await fetch('/api/auth',{cache:'no-store'});if(r.ok&&(await r.json()).authenticated)return true;const password=prompt('Введите пароль администратора (один раз на 90 дней):');if(!password)return false;const p=await fetch('/api/auth',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password})});const d=await p.json();if(!p.ok)throw Error(d.error||'Ошибка входа');return true}$('save').onclick=async()=>{const qs=[...$('questionList').children].map(el=>({q:el.querySelector('.q').value.trim(),options:[...el.querySelectorAll('.opt')].map(x=>x.value.trim()),correct:Number(el.querySelector('.correct').value)}));const data={title:$('gameTitle').value.trim(),questions:qs};if(!data.title||!qs.length||qs.some(q=>!q.q||q.options.some(a=>!a)))return alert('Заполните название, вопросы и все 4 ответа');try{if(!await auth())return;const r=await fetch('/api/million',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(data)});const d=await r.json();if(!r.ok)throw Error(d.error||'Ошибка сохранения');config=data;$('introTitle').textContent=data.title;show('intro');alert('✓ Вопросы сохранены в Cloudflare D1')}catch(e){alert('Ошибка: '+e.message)}};load();
+let tvStarting=false;
+$('startButton').onclick=()=>{
+ if(tvStarting)return;
+ if(!config.questions.length){alert('Сначала добавьте вопросы в настройках или нажмите «Вписать все 90 вопросов».');return}
+ tvStarting=true;stopSuspense();fadeOutIntroMusic(380);sound('start');$('next').dataset.lost='0';
+ index=0;score=[0,0];history=[];used={fifty:false,audience:false,swap:false};removed=[];locked=false;finished=false;
+ $('notice').textContent='';render();
+ const curtain=$('tvTransition');curtain.classList.remove('hidden');curtain.classList.remove('tv-out');
+ window.setTimeout(()=>{show('play');curtain.classList.add('tv-out');window.setTimeout(()=>{curtain.classList.add('hidden');curtain.classList.remove('tv-out');tvStarting=false},620)},1450);
+};$('next').onclick=()=>{stopSuspense();if($('next').dataset.lost==='1'){show('intro');$('introTitle').textContent='Игра окончена';$('next').dataset.lost='0';return}if(index+1>=config.questions.length){show('intro');$('introTitle').textContent='Игра окончена';$('introMusicStatus').textContent='Итоги: команда № 1 — '+score[0]+' баллов · команда № 2 — '+score[1]+' баллов';return}index++;locked=false;finished=false;removed=[];$('notice').textContent='';render()};$('restart').onclick=()=>{if(confirm('Начать игру заново?'))$('startButton').click()};$('fifty').onclick=()=>{if(locked||used.fifty)return;sound('click');used.fifty=true;const q=config.questions[index];removed=[0,1,2,3].filter(i=>i!==q.correct).sort(()=>Math.random()-.5).slice(0,2);render()};$('audience').onclick=()=>{if(locked||used.audience)return;sound('click');used.audience=true;$('notice').textContent='📣 Помощь зала: спросите присутствующих и выберите ответ вручную';render()};$('swap').onclick=()=>{if(locked||used.swap)return;sound('click');used.swap=true;$('notice').textContent='☎ Звонок другу: команда может проконсультироваться с выбранным участником';render()};$('fullButton').onclick=()=>{if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.()};function editRow(q,i){const el=document.createElement('div');el.className='edititem';el.dataset.team=String(q.team??(i%2));el.dataset.round=String(q.round??0);el.innerHTML='<strong>Вопрос '+(i+1)+'</strong><label>Текст вопроса<input class="q" maxlength="500" value="'+escapeHtml(q.q)+'"></label><div class="options">'+q.options.map((a,j)=>'<label>Вариант '+letters[j]+'<input class="opt" maxlength="200" value="'+escapeHtml(a)+'"></label>').join('')+'</div><label>Правильный вариант <select class="correct">'+letters.map((l,j)=>'<option value="'+j+'" '+(j===q.correct?'selected':'')+'>'+l+'</option>').join('')+'</select></label><button class="hint delete">Удалить вопрос</button>';el.querySelector('.delete').onclick=()=>{el.remove();renumber()};return el}function renumber(){[...$('questionList').children].forEach((el,i)=>el.querySelector('strong').textContent='Вопрос '+(i+1))}function openEditor(){$('gameTitle').value=config.title;$('questionList').innerHTML='';config.questions.forEach((q,i)=>$('questionList').append(editRow(q,i)));show('editor')}$('editButton').onclick=openEditor;$('cancel').onclick=()=>show('intro');$('importScenario').onclick=async()=>{if($('questionList').children.length&&!confirm('Заменить текущий список вопросами из сценария? На сервере они изменятся только после нажатия «Сохранить в D1».'))return;try{const r=await fetch('/million/scenario-questions.json',{cache:'no-store'});if(!r.ok)throw Error('Файл вопросов недоступен');const d=await r.json();$('gameTitle').value=d.title;$('questionList').innerHTML='';d.questions.forEach((q,i)=>$('questionList').append(editRow(q,i)));alert('✓ Вставлены '+d.questions.length+' вопросов. Проверьте правильные ответы, затем нажмите «Сохранить в D1».')}catch(e){alert('Ошибка импорта: '+e.message)}};$('add').onclick=()=>{if($('questionList').children.length>=200)return alert('Максимум 200 вопросов');$('questionList').append(editRow({q:'',options:['','','',''],correct:0},$('questionList').children.length))};async function auth(){const r=await fetch('/api/auth',{cache:'no-store'});if(r.ok&&(await r.json()).authenticated)return true;const password=prompt('Введите пароль администратора (один раз на 90 дней):');if(!password)return false;const p=await fetch('/api/auth',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password})});const d=await p.json();if(!p.ok)throw Error(d.error||'Ошибка входа');return true}$('save').onclick=async()=>{const qs=[...$('questionList').children].map(el=>({q:el.querySelector('.q').value.trim(),options:[...el.querySelectorAll('.opt')].map(x=>x.value.trim()),correct:Number(el.querySelector('.correct').value),team:Number(el.dataset.team||0),round:Number(el.dataset.round||0)}));const data={title:$('gameTitle').value.trim(),questions:qs};if(!data.title||!qs.length||qs.some(q=>!q.q||q.options.some(a=>!a)))return alert('Заполните название, вопросы и все 4 ответа');try{if(!await auth())return;const r=await fetch('/api/million',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(data)});const d=await r.json();if(!r.ok)throw Error(d.error||'Ошибка сохранения');config=data;$('introTitle').textContent=data.title;show('intro');alert('✓ Вопросы сохранены в Cloudflare D1')}catch(e){alert('Ошибка: '+e.message)}};load();
 
 let audioCtx=null,muted=false;
 function getAudio(){
@@ -172,11 +213,85 @@ function playSuspense(){
 
 $('soundButton').onclick=()=>{
  muted=!muted;
- if(muted)stopSuspense();
+ if(muted){stopSuspense();pauseIntroMusic();}
  $('soundButton').textContent=muted?'🔇 Звук выкл.':'🔊 Звук вкл.';
  $('soundButton').setAttribute('aria-pressed',String(!muted));
- if(!muted)sound('start',true);
+ if(!muted){sound('start',true);if(!$('intro').classList.contains('hidden'))playIntroMusic();}
 };
 // Запуск звука происходит при непосредственном нажатии пользователя.
 document.addEventListener('pointerdown',()=>{if(!muted){try{getAudio()}catch(e){}}},{once:true});
+
+// Телевизионная музыкальная заставка (авторская композиция, собственный MP3).
+// Чтобы включить свою запись передачи, можно выбрать MP3; он хранится локально
+// в IndexedDB этого браузера, не загружается в D1/на сервер.
+const introMusic=new Audio('/million/audio/million-intro.mp3');
+introMusic.loop=true;introMusic.preload='auto';
+let introMusicPlaying=false,introMusicBlobUrl=null,introFadeTimer=null,introMusicName='Авторская музыка студии';
+const musicStatus=$('introMusicStatus'),musicToggle=$('introMusicButton'),musicLabel=$('introMusicLabel');
+function paintIntroMusic(){
+ musicToggle.setAttribute('aria-pressed',String(introMusicPlaying&&!muted));
+ musicLabel.textContent=introMusicPlaying&&!muted?'❚❚ ПРИОСТАНОВИТЬ МУЗЫКУ':'▶ ВКЛЮЧИТЬ МУЗЫКУ';
+ document.body.classList.toggle('tv-music-on',introMusicPlaying&&!muted);
+}
+function clearMusicFade(){if(introFadeTimer){clearInterval(introFadeTimer);introFadeTimer=null}}
+function pauseIntroMusic(){clearMusicFade();introMusic.pause();introMusicPlaying=false;introMusic.volume=(Number($('introMusicVolume').value)||0)/100;paintIntroMusic()}
+async function playIntroMusic(){
+ if(muted){muted=false;$('soundButton').textContent='🔊 Звук вкл.'}
+ clearMusicFade();introMusic.volume=Number($('introMusicVolume').value)/100;
+ try{await introMusic.play();introMusicPlaying=true;musicStatus.textContent='♫ Сейчас играет: '+introMusicName;paintIntroMusic()}
+ catch(e){introMusicPlaying=false;musicStatus.textContent='⚠ Браузер не разрешил звук. Нажмите «Включить музыку» ещё раз.';paintIntroMusic()}
+}
+function fadeOutIntroMusic(milliseconds){
+ if(introMusic.paused)return;
+ clearMusicFade();const initial=introMusic.volume;const start=performance.now();
+ introFadeTimer=setInterval(()=>{
+  const t=Math.min(1,(performance.now()-start)/milliseconds);
+  introMusic.volume=Math.max(0,initial*(1-t));
+  if(t>=1)pauseIntroMusic();
+ },35)
+}
+$('introMusicButton').onclick=()=>{if(introMusicPlaying)pauseIntroMusic();else playIntroMusic()};
+$('introMusicVolume').oninput=()=>{
+ const v=Number($('introMusicVolume').value)/100;introMusic.volume=v;
+ try{localStorage.setItem('million_intro_volume',String(v))}catch(e){}
+};
+try{const v=Number(localStorage.getItem('million_intro_volume'));if(Number.isFinite(v)&&v>=0&&v<=1&&localStorage.getItem('million_intro_volume')!==null){$('introMusicVolume').value=Math.round(v*100);introMusic.volume=v}}catch(e){}
+$('customMusicButton').onclick=()=>$('introMusicFile').click();
+function openMusicStore(){
+ return new Promise((resolve,reject)=>{
+  if(!('indexedDB'in window)){reject(Error('Браузер не поддерживает сохранение файла'));return}
+  const r=indexedDB.open('million-music-v1',1);
+  r.onupgradeneeded=()=>r.result.createObjectStore('track');
+  r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);
+ })
+}
+async function persistIntroTrack(file){
+ const db=await openMusicStore();
+ await new Promise((resolve,reject)=>{
+  const tx=db.transaction('track','readwrite');tx.objectStore('track').put({name:file.name,blob:file},'intro');
+  tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);
+ });db.close()
+}
+function useIntroMusicBlob(blob,name){
+ const wasPlaying=!introMusic.paused;pauseIntroMusic();
+ if(introMusicBlobUrl)URL.revokeObjectURL(introMusicBlobUrl);
+ introMusicBlobUrl=URL.createObjectURL(blob);introMusic.src=introMusicBlobUrl;introMusic.load();
+ introMusicName=name;musicStatus.textContent='♫ Выбрана музыка: '+name;
+ if(wasPlaying)playIntroMusic()
+}
+$('introMusicFile').addEventListener('change',async e=>{
+ const file=e.target.files?.[0];if(!file)return;
+ if(file.size>25*1024*1024){musicStatus.textContent='⚠ Файл больше 25 МБ. Выберите MP3 поменьше.';return}
+ if(!(file.type.startsWith('audio/')||/\.(mp3|wav|ogg|m4a)$/i.test(file.name))){musicStatus.textContent='⚠ Нужен музыкальный файл MP3, WAV или OGG.';return}
+ useIntroMusicBlob(file,file.name);
+ try{await persistIntroTrack(file);musicStatus.textContent='✓ Своя музыка сохранена на этом устройстве: '+file.name}
+ catch(err){musicStatus.textContent='♫ Файл выбран на этот сеанс. Для постоянного хранения браузер не дал доступ: '+err.message}
+});
+(async()=>{
+ try{const db=await openMusicStore();const saved=await new Promise((resolve,reject)=>{
+  const tx=db.transaction('track','readonly'),r=tx.objectStore('track').get('intro');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)
+ });db.close();if(saved?.blob&& !introMusicBlobUrl)useIntroMusicBlob(saved.blob,saved.name)}catch(err){}
+})();
+introMusic.addEventListener('error',()=>{musicStatus.textContent='⚠ Музыка не загрузилась. Проверьте файл /million/audio/million-intro.mp3'});
+paintIntroMusic();
 </script></body></html>

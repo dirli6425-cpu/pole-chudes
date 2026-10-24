@@ -48,7 +48,7 @@ if(url.pathname==='/api/million'){
    if(!await authorized(request,env))return json({error:'Требуется вход администратора'},401);
    const raw=await request.text();if(raw.length>100000)return json({error:'Слишком большой запрос'},413);
    const data=JSON.parse(raw);
-   if(typeof data.title!=='string'||!data.title.trim()||data.title.length>100||!Array.isArray(data.questions)||data.questions.length<1||data.questions.length>50||!data.questions.every(q=>typeof q.q==='string'&&q.q.trim()&&q.q.length<=500&&Array.isArray(q.options)&&q.options.length===4&&q.options.every(a=>typeof a==='string'&&a.trim()&&a.length<=200)&&Number.isInteger(q.correct)&&q.correct>=0&&q.correct<4))return json({error:'Проверьте вопросы и варианты ответов'},400);
+   if(typeof data.title!=='string'||!data.title.trim()||data.title.length>100||!Array.isArray(data.questions)||data.questions.length<1||data.questions.length>200||!data.questions.every(q=>typeof q.q==='string'&&q.q.trim()&&q.q.length<=500&&Array.isArray(q.options)&&q.options.length===4&&q.options.every(a=>typeof a==='string'&&a.trim()&&a.length<=200)&&Number.isInteger(q.correct)&&q.correct>=0&&q.correct<4&&(!('team' in q)||(Number.isInteger(q.team)&&q.team>=0&&q.team<=1))&&(!('round' in q)||(Number.isInteger(q.round)&&q.round>=0&&q.round<=3))))return json({error:'Проверьте вопросы и варианты ответов'},400);
    await env.DB.prepare('INSERT INTO million_config (id,payload,updated_at) VALUES (1,?,CURRENT_TIMESTAMP) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload,updated_at=CURRENT_TIMESTAMP').bind(JSON.stringify({title:data.title.trim(),questions:data.questions})).run();return json({ok:true});
   }
   return json({error:'Метод не поддерживается'},405);
