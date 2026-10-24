@@ -1,0 +1,22 @@
+Studio 09 audio pack
+
+The files public/million/audio/{intro,bed,start,round,select,lock,correct,
+wrong,fifty,audience,next,finish,click,hover}.mp3 were generated specifically
+for this game from original synthesis code in tools/make_audio.py.
+They contain no samples or copied melodies from Who Wants to Be a Millionaire.
+You may use, modify and distribute this newly created sound pack with the game.
+
+The previous user's project assets in public/audio and the previously supplied
+million-intro.mp3 are user-provided assets, retained as supplied. Their original
+rights and permissions are not changed by this update.
+
+The actual television soundtrack is by Keith Strachan and Matthew Strachan.
+Official album: https://www.madisongaterecords.com/who-wants-be-millionaire-original-television-series-soundtrack
+No recordings from that soundtrack have been included or represented as licensed.
+The import UI accepts audio files supplied by the user. The user is responsible
+for having permission for their intended playback and distribution.
+
+Rubik font is supplied under the SIL Open Font License, see Rubik-OFL.txt.
+FONT COPYRIGHT (bundled font version):
+Copyright (c) 2015 by Hubert & Fischer. All rights reserved.
+Hebrew characters (c) 2016 by Meir Sadan.
